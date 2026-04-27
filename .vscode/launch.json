@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ESTest}",
+            "name": "Debug ESTest",
+            "target": "ESTest",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug ESTest"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:ESTest}",
+            "name": "Release ESTest",
+            "target": "ESTest",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release ESTest"
+        }
+    ]
+}
