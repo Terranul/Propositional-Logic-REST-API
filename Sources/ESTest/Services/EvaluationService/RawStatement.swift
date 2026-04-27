@@ -1,26 +1,21 @@
 class RawStatement: Statement {
 
-    let lhs: Character
-    let rhs: Character
-    let op: any Operator
+    let variable: Character
+    let leadingOp: any LeadingOperator
 
-    init(lhs: Character, rhs: Character, op: any Operator) {
-        self.lhs = lhs
-        self.rhs = rhs
-        self.op = op
+    init(variable: Character, leadingOp: any LeadingOperator) {
+        self.variable = variable
+        self.leadingOp = leadingOp
     }
 
     func evaluate(resolutionMap: [Character: Bool]) -> Bool {
-      guard let lhsEval: Bool = resolutionMap[lhs] else {
+      guard let varEval: Bool = resolutionMap[variable] else {
         return false
       }
-      guard let rhsEval: Bool = resolutionMap[rhs] else {
-        return false
-      }
-      return op.applyOperation(lhs: rhsEval, rhs: lhsEval)
+      return leadingOp.applyOperation(value: varEval)
     }
 
     func getStatement() -> String {
-        return "(\(lhs) \(op.getStringRepresentation()) \(rhs))"
+        return "\(leadingOp.getStringRepresentation())\(String(variable))"
     }
 }
