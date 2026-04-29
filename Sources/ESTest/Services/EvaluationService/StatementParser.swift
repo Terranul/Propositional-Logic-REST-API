@@ -67,7 +67,7 @@ public struct StatementParser {
 
     // raw statement is in form "a" (single variable)
     public func isRawStatement(value: String) -> Bool {
-        return value.count <= 2
+        return value.count == 1
     }
 
     // undefined variable checks have occured already, the errors are just extra padding here

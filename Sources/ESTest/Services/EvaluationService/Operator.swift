@@ -27,5 +27,52 @@ class OrOperator: Operator {
         return "v"
     }
 
+}
+
+class XOROperator: Operator {
     
+    func applyOperation(lhs: Bool, rhs: Bool) -> Bool {
+        return lhs != rhs
+    }
+
+    func getStringRepresentation() -> String {
+        return "+"
+    }
+
+}
+
+class BICOperator: Operator {
+    
+    func applyOperation(lhs: Bool, rhs: Bool) -> Bool {
+        return lhs && rhs || !lhs && !rhs  
+    }
+
+    func getStringRepresentation() -> String {
+        return "="
+    }
+
+}
+
+class IMPOperator: Operator {
+    
+    func applyOperation(lhs: Bool, rhs: Bool) -> Bool {
+        return !lhs || rhs
+    }
+
+    func getStringRepresentation() -> String {
+        return ">"
+    }
+
+}
+
+class NANDOperator: Operator {
+    
+    func applyOperation(lhs: Bool, rhs: Bool) -> Bool {
+        return !(lhs && rhs)
+    }
+
+    func getStringRepresentation() -> String {
+        return "|"
+    }
+
 }

@@ -1,10 +1,14 @@
 struct OperatorParser {
 
-    let operatorSet: Set<Character> = ["^", "v"]
+    let operatorSet: Set<Character> = ["^", "v", "+", "=", ">", "|"]
     let leadingOperatorSet: Set<Character> = ["\\", "/", "~"]
 
     public func isOperator(value: Character) -> Bool {
         return operatorSet.contains(value)
+    }
+
+    public func isLeadingOperator(value: Character) -> Bool {
+        return leadingOperatorSet.contains(value)
     }
 
     public func getOperator(value: Character) throws -> any Operator {
@@ -13,6 +17,14 @@ struct OperatorParser {
                 return AndOperator()
             case "v":
                 return OrOperator()
+            case "+":
+                return XOROperator()
+            case "=":
+                return BICOperator()
+            case ">":
+                return IMPOperator()
+            case "|":
+                return NANDOperator()
             default:
                 throw EvalError.InvalidOperator(operator: value)
         }
