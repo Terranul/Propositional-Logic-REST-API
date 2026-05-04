@@ -1,17 +1,17 @@
 import Testing
 @testable import ESTest
 
-@Test func testConvertDictionary() async throws {
-    let evalBridge: EvalBridge = EvalBridge()
-    let dict: [String: Bool] = ["a": true, "b": false, "c": true]
-    do {
-        let result: [Character : Bool] = try evalBridge.convertDictionary(dict: dict)
-        #expect(result["a"]! && !result["b"]! && result["c"]!)
-    } catch {
-        #expect(Bool(false))
-    }
+// @Test func testConvertDictionary() async throws {
+//     let evalBridge: EvalBridge = EvalBridge()
+//     let dict: [String: Bool] = ["a": true, "b": false, "c": true]
+//     do {
+//         let result: [Character : Bool] = try evalBridge.convertDictionary(dict: dict)
+//         #expect(result["a"]! && !result["b"]! && result["c"]!)
+//     } catch {
+//         #expect(Bool(false))
+//     }
 
-}
+// }
 
 @Test func getAllResultsTest() async throws {
     let evalBridge: EvalBridge = EvalBridge()

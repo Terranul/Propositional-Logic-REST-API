@@ -1,11 +1,6 @@
 import Fluent
 import Vapor
 
-struct EvalDTO: Content {
-    let inputs: [String: Bool]
-    let result: Bool
-}
-
 struct EvalInputDTO: Content {
     let statement: String
     let statementPretty: String
@@ -16,7 +11,7 @@ struct EvalInputDTO: Content {
 struct EvalTotalDTO: Content {
     let statement: String
     let statementPretty: String
-    let results: [EvalDTO]
+    let results: [EvalContent]
 }
 
 // request content DTO's 
@@ -27,14 +22,27 @@ struct EvalRequest: Content {
 
 // to manually decode and encode [Character: Bool] type into [String: Bool] mapping for JSON
 
-struct EvalEncoder: Encodable {
+struct EvalContent: Content {
 
     enum CodingKeys: CodingKey {
         case inputs, result
     }
 
-   let inputs: [Character: Bool]
+   var inputs: [Character: Bool]
    let result: Bool
+
+   init(from decoder: any Decoder) throws {
+        let container: KeyedDecodingContainer<EvalContent.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+        let initValue: [String : Bool] = try container.decode(Dictionary<String, Bool>.self, forKey: .inputs)
+        self.inputs = [:]
+        result = try container.decode(Bool.self, forKey: .result)
+        inputs = try convertDictionary(dict: initValue)
+   }
+
+   init(inputs: [Character: Bool], result: Bool) {
+        self.inputs = inputs
+        self.result = result
+   }        
 
     func encode(to encoder: any Encoder) throws {
         let stringDict: [String : Bool] = Dictionary(
@@ -42,11 +50,23 @@ struct EvalEncoder: Encodable {
                 (String(key), value)
             }
         )
-        var container: KeyedEncodingContainer<EvalEncoder.CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+        var container: KeyedEncodingContainer<EvalContent.CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(stringDict, forKey: .inputs)
         try container.encode(result, forKey: .result)
     }
 
+    private func convertDictionary(dict: [String: Bool]) throws -> [Character: Bool] {
+        let modifiedMap: [(Character, Bool)] = try dict.compactMap{ key, value -> (Character, Bool) in
+            guard key.count == 1 else {
+                throw EvalCError.UndefinedParamater
+            }
+            return (Character(key), value)
+        }
+        // convert back to a dictionary
+        return Dictionary(modifiedMap, uniquingKeysWith: { (value1, value2) in 
+            return value1
+        })
+    }
 }
 
 struct EvalDecoder: Decodable {

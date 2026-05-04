@@ -1,14 +1,23 @@
 struct EvalBridge {
 
-    func getResult(inputs: [String: Bool], value: String) throws -> EvalInputDTO { 
-        let parser: StatementParser = StatementParser() 
-        let statement = try parser.parseStatement(value: value)
-        let convertedDict: [Character : Bool] = try convertDictionary(dict: inputs)
-        let result: Bool = statement.evaluate(resolutionMap: convertedDict)
-        return EvalInputDTO(statement: value, 
-                            statementPretty: statement.getStatement(), 
-                            inputs: inputs, 
-                            result: result)
+    func getContentDTO(statement: any Statement, inputs: [Character: Bool]) -> EvalContent{
+        let result: Bool = statement.evaluate(resolutionMap: inputs)
+        return EvalContent(inputs: inputs, result: result)
+    }
+
+    func getAllDTO(statement: any Statement, inputs: [[Character: Bool]]) -> [EvalContent] {
+        return inputs.map({ value in 
+            return getContentDTO(statement: statement, inputs: value)
+        })
+    }
+
+    func getStatement(_ script: String) throws -> any Statement {
+        let compactScript: String = script.replacing(" ", with: "")
+        return try StatementParser().parseStatement(value: compactScript)
+    }
+
+    func getPrettyStatement(statement: any Statement) -> String{
+        return statement.getStatement()
     }
 
     func getAllResults(value: String) throws -> [[Character : Bool]] {
@@ -30,31 +39,6 @@ struct EvalBridge {
             inputsList.append(inputs)
         }
         return inputsList
-    }
-
-    func getTotalDTO(value: String) throws -> EvalTotalDTO {
-        let variableInputs: [[Character : Bool]] = try getAllResults(value: value)
-        var resultsList: [EvalDTO] = []
-        let parser = StatementParser()
-        let statement: any Statement = try parser.parseStatement(value: value)
-        for input: [Character : Bool] in variableInputs {
-            let result = statement.evaluate(resolutionMap: input)
-            let eval = EvalDTO(inputs: input, result: result)
-
-        }
-    }
-
-    func convertDictionary(dict: [String: Bool]) throws -> [Character: Bool] {
-        let modifiedMap: [(Character, Bool)] = try dict.compactMap{ key, value -> (Character, Bool) in
-            guard key.count == 1 else {
-                throw EvalCError.UndefinedParamater
-            }
-            return (Character(key), value)
-        }
-        // convert back to a dictionary
-        return Dictionary(modifiedMap, uniquingKeysWith: { (value1, value2) in 
-            return value1
-        })
     }
 
     // return a list of all characters not operators or parens

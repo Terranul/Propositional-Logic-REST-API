@@ -3,7 +3,7 @@ import Vapor
 
 func routes(_ app: Application) throws {
     app.get { req async in
-        "It works!"
+        "Welcome to everything propositional logic"
     }
 
     app.get("hello") { req async -> String in
@@ -11,4 +11,6 @@ func routes(_ app: Application) throws {
     }
 
     try app.register(collection: TodoController())
+
+    try app.register(collection: EvalController())
 }
