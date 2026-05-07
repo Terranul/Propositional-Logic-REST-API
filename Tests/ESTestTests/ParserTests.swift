@@ -3,6 +3,8 @@ import Testing
 
 // no before each :(
 
+let a = 9
+
 @Test func testLHS() async throws {
     let parser = StatementParser()
     let value = "((a^b)v(a^c))"
@@ -14,7 +16,7 @@ import Testing
 @Test func testFindOperatorIndex() async throws {
     let parser = StatementParser()
     let value = "(av(a^c))"
-    let result = parser.getOperatorIndex(value: value)
+    let result = try parser.getOperatorIndex(value: value)
     #expect(result == value.index(value.startIndex, offsetBy: 2))
 }
 

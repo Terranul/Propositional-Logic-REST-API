@@ -1,13 +1,13 @@
 struct EvalBridge {
 
-    func getContentDTO(statement: any Statement, inputs: [Character: Bool]) -> EvalContent{
-        let result: Bool = statement.evaluate(resolutionMap: inputs)
+    func getContentDTO(statement: any Statement, inputs: [Character: Bool]) throws -> EvalContent{
+        let result: Bool = try statement.evaluate(resolutionMap: inputs)
         return EvalContent(inputs: inputs, result: result)
     }
 
-    func getAllDTO(statement: any Statement, inputs: [[Character: Bool]]) -> [EvalContent] {
-        return inputs.map({ value in 
-            return getContentDTO(statement: statement, inputs: value)
+    func getAllDTO(statement: any Statement, inputs: [[Character: Bool]]) throws -> [EvalContent] {
+        return try inputs.map({ value  in 
+            return try getContentDTO(statement: statement, inputs: value)
         })
     }
 

@@ -58,7 +58,7 @@ struct EvalContent: Content {
     private func convertDictionary(dict: [String: Bool]) throws -> [Character: Bool] {
         let modifiedMap: [(Character, Bool)] = try dict.compactMap{ key, value -> (Character, Bool) in
             guard key.count == 1 else {
-                throw EvalCError.UndefinedParamater
+                throw EvalError.InternalParsingError
             }
             return (Character(key), value)
         }
@@ -87,7 +87,7 @@ struct EvalDecoder: Decodable {
     private func convertDictionary(dict: [String: Bool]) throws -> [Character: Bool] {
         let modifiedMap: [(Character, Bool)] = try dict.compactMap{ key, value -> (Character, Bool) in
             guard key.count == 1 else {
-                throw EvalCError.UndefinedParamater
+                throw ValidationError.MissingInputField("Missing input field in request body")
             }
             return (Character(key), value)
         }

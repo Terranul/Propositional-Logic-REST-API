@@ -14,16 +14,14 @@ public struct StatementParser {
         if (isRawStatement(value: rmValue)) {
             return try parseRawStatement(variable: rmValue, leadingOp: leadingOperator)
         } else {
-            guard let opIndex: DefaultIndices<String>.Element = getOperatorIndex(value: rmValue) else {
-                throw EvalError.InvalidOperator(operator: "a")
-            }
+            let opIndex: DefaultIndices<String>.Element = try getOperatorIndex(value: rmValue)
             return try parseComplexStatement(value: rmValue, opIndex: opIndex, leadingOp: leadingOperator)
         }
     }
 
     func parseComplexStatement(value: String, opIndex: DefaultIndices<String>.Element, leadingOp: any LeadingOperator) throws -> any Statement {
-        let lhs: String = parseLHS(value: value, opIndex: opIndex)
-        let rhs: String = parseRHS(value: value, opIndex: opIndex)
+        let lhs: String = try parseLHS(value: value, opIndex: opIndex)
+        let rhs: String = try parseRHS(value: value, opIndex: opIndex)
         let curOperator: any Operator = try operatorParser.getOperator(value: value[opIndex])
         return ComplexStatement(lhs: try parseStatement(value: lhs),
                                 rhs: try parseStatement(value: rhs), 
@@ -31,25 +29,31 @@ public struct StatementParser {
                                 leadingOp: leadingOp)
     }
 
-    public func parseLHS(value: String, opIndex: DefaultIndices<String>.Element) -> String {
+    public func parseLHS(value: String, opIndex: DefaultIndices<String>.Element) throws-> String {
         // we know the first character must be (
         let start: String.Index = value.index(value.startIndex, offsetBy: 1)
         let end: DefaultIndices<String>.Element = opIndex
+        guard start != end else  {
+            throw EvalError.MalformedStatement
+        }
         // include start, exclude end
         print("lhs result:" + String(value[start..<end]))
         return String(value[start..<end])
     }
 
-    public func parseRHS(value: String, opIndex: DefaultIndices<String>.Element) -> String {
+    public func parseRHS(value: String, opIndex: DefaultIndices<String>.Element) throws -> String {
         // find the beginning of the rhs
         let start: DefaultIndices<String>.Element = value.index(after: opIndex)
         let end: String.Index = value.index(before: value.endIndex)
+        guard start != end else  {
+            throw EvalError.MalformedStatement
+        }
         print("rhs result:" + String(value[start..<end]))
         return String(value[start..<end])
     }
 
     // default indices is a specialized type to allow indexed access into a list
-    public func getOperatorIndex(value: String) -> DefaultIndices<String>.Element? {
+    public func getOperatorIndex(value: String) throws -> DefaultIndices<String>.Element {
         // the value will have multiple operators, so we will search until we have an operator and balanced parens
         var parenCount = -1 // start at -1 becuase of the leading parens
         for index in value.indices {
@@ -60,9 +64,11 @@ public struct StatementParser {
             }
             if (operatorParser.isOperator(value: value[index]) && parenCount == 0) {
                 return index
+            } else if (parenCount == -1) {
+                throw EvalError.InvalidOperator(operator: value[index])
             }
         }
-        return nil
+        throw EvalError.MalformedStatement
     }
 
     // raw statement is in form "a" (single variable)
@@ -85,5 +91,4 @@ public struct StatementParser {
         return value[firstIndex] == "~"
     }
 
-    // (cv(a^b))
 }

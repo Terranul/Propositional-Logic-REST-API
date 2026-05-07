@@ -8,9 +8,9 @@ class RawStatement: Statement {
         self.leadingOp = leadingOp
     }
 
-    func evaluate(resolutionMap: [Character: Bool]) -> Bool {
+    func evaluate(resolutionMap: [Character: Bool]) throws -> Bool {
       guard let varEval: Bool = resolutionMap[variable] else {
-        return false
+        throw EvalError.UndefinedVariable(variable: variable)
       }
       return leadingOp.applyOperation(value: varEval)
     }

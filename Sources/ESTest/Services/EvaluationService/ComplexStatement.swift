@@ -6,9 +6,9 @@ class ComplexStatement: Statement {
     let leadingOp: any LeadingOperator
 
 
-    func evaluate(resolutionMap: [Character: Bool]) -> Bool {
-        let lhsResult = lhs.evaluate(resolutionMap: resolutionMap)
-        let rhsResult: Bool = rhs.evaluate(resolutionMap: resolutionMap)
+    func evaluate(resolutionMap: [Character: Bool]) throws-> Bool {
+        let lhsResult = try lhs.evaluate(resolutionMap: resolutionMap)
+        let rhsResult: Bool = try rhs.evaluate(resolutionMap: resolutionMap)
         let result: Bool = op.applyOperation(lhs: lhsResult, rhs: rhsResult)
         return leadingOp.applyOperation(value: result)
     }

@@ -8,11 +8,23 @@ import Testing
     do {
         let base = try parser.parseStatement(value: value)
          #expect(base.getStatement() == "(~(a ^ b) v (a ^ c))")
-         #expect(base.evaluate(resolutionMap: ["a": true, "b": false, "c": false]))
-         #expect(!base.evaluate(resolutionMap: ["a": true, "b": true, "c": false]))
+         #expect(try base.evaluate(resolutionMap: ["a": true, "b": false, "c": false]))
+         #expect(try !base.evaluate(resolutionMap: ["a": true, "b": true, "c": false]))
          
     } catch {
         #expect(Bool(false))
+    }
+}
+
+@Test func testEvalInvalidEmptyOrStatement() async throws {
+    let parser = StatementParser()
+    let value = "(v)"
+    
+    do {
+        _ = try parser.parseStatement(value: value)
+        #expect(Bool(false))
+    } catch {
+        #expect(Bool(true))
     }
 }
 
@@ -22,8 +34,8 @@ import Testing
     do {
         let statement: any Statement = try parser.parseRawStatement(variable: value, leadingOp: TrueSlashOperator())
         #expect(statement.getStatement() == "/a")
-        #expect(statement.evaluate(resolutionMap: ["a": true, "b": false]))
-        #expect(statement.evaluate(resolutionMap: ["a": true, "b": true]))
+        #expect(try statement.evaluate(resolutionMap: ["a": true, "b": false]))
+        #expect(try statement.evaluate(resolutionMap: ["a": true, "b": true]))
     } catch {
         #expect(Bool(false))
     }
