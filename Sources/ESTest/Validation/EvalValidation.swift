@@ -37,6 +37,7 @@ public struct EvalValidation: Middleware {
                 abort = Abort(.badRequest, reason: "Variable: \(variable) was identified in your statement and is missing from your mapping key.")
             }
         } else {
+            print("hit internal server errror here with error:" + String(describing: error))
             abort = Abort(.internalServerError)
         }
         return request.eventLoop.makeFailedFuture(abort)
@@ -76,7 +77,7 @@ public struct EvalValidation: Middleware {
         } else if (result < 0) {
             throw ValidationError.UnbalancedParens("Unbalanced Parenthesis. Too many left parens.")
         }
-        if (Array(statement)[0] != "(" && Array(statement)[statement.count] != ")") {
+        if ((Array(statement)[0] != "(" && Array(statement)[statement.count - 1] != ")") && Array(statement).count > 2) {
             throw ValidationError.MissingOuterParens("Missing outer pair of parens.")
         }
     }

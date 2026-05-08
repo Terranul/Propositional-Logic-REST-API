@@ -10,5 +10,7 @@ func routes(_ app: Application) throws {
         "Hello, world!"
     }
 
-    try app.register(collection: EvalController())
+    let v100: any RoutesBuilder = app.grouped("v1.0.0")
+    try v100.register(collection: EvalController())
+
 }

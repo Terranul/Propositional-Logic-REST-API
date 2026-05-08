@@ -10,6 +10,7 @@ struct EvalController: RouteCollection {
     func boot(routes: any Vapor.RoutesBuilder) throws {
         let evals: any RoutesBuilder = routes.grouped("eval").grouped(EvalValidation())
         evals.get(":statement", use: getAllEval)
+        evals.post(":statement", use: getSingleEval)
     }
 
     func getSingleEval(req: Request) throws -> EvalTotalDTO {

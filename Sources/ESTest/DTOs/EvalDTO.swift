@@ -78,8 +78,10 @@ struct EvalDecoder: Decodable {
     var inputs: [Character: Bool]
 
     init(from decoder: any Decoder) throws {
+        print("entered decoder")
         let container: KeyedDecodingContainer<EvalDecoder.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-        let initValue: [String : Bool] = try container.decode(Dictionary<String, Bool>.self, forKey: .inputs)
+        let initValue: Dictionary<String, Bool> = try container.decode(Dictionary<String, Bool>.self, forKey: .inputs)
+        print("passed potential problem")
         self.inputs = [:] // if the conversion fails, error will bubble up and we'll never have to deal with this case
         inputs = try convertDictionary(dict: initValue)
     }
