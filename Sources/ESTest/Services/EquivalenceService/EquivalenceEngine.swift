@@ -22,8 +22,6 @@ func findEquivalenceRelations(for statements: [String]) throws -> Dictionary<Str
     return equivalenceDict
 }
 
-// [a, 1, b, 2, c, 3]
-
 func isEquivalent(_ a: String, with b: String) throws -> Bool {
     if (!applyVariableScreening(a, b)) {return false}
     let statementParser = StatementParser()
