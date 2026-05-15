@@ -12,5 +12,6 @@ func routes(_ app: Application) throws {
 
     let v100: any RoutesBuilder = app.grouped("v1.0.0")
     try v100.register(collection: EvalController())
+    try v100.register(collection: EqualController())
 
 }

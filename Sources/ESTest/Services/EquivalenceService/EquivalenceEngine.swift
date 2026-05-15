@@ -1,4 +1,5 @@
 
+
 func findEquivalenceRelations(for statements: [String]) throws -> Dictionary<String, Set<String>> {
     var equivalenceDict: Dictionary<String, Set<String>> = [:]
     for statementTarget in statements {

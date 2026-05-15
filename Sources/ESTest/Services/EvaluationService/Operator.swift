@@ -6,7 +6,7 @@ protocol Operator {
 }
 
 class AndOperator: Operator {
-    
+
     func applyOperation(lhs: Bool, rhs: Bool) -> Bool {
         return lhs && rhs
     }

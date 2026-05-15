@@ -50,4 +50,12 @@ let a = 9
     }
 }
 
+@Test func testValidateStatement() async throws {
+    let result = validateStatement(for: "(a^bvc)")
+    print("allowed")
+    let result2 = validateStatement(for: "(a~^bvc)")
+    let result3 = validateStatement(for: "a")
+
+}
+
 
