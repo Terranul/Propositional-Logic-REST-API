@@ -55,7 +55,7 @@ let a = 9
     print("allowed")
     let result2 = validateStatement(for: "(a~^bvc)")
     let result3 = validateStatement(for: "a")
-
+    let result4 = validateStatement(for: "(a^b)")
 }
 
 

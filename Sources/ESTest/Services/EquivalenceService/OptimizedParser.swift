@@ -6,6 +6,10 @@ extension Array {
         }
         return self[value]
     }
+
+    func isEmpty() -> Bool {
+        return self.count <= 0
+    }
 }
 /* 
    this represents an optimized but less exact version of the parser used for evaluation that only determines
@@ -27,7 +31,8 @@ struct StatementCounts {
     var op: Int = 0
     var variable: Int = 0
     var lop: Int = 0
-    var bind: Int = 0
+    var Lbind: Int = 0
+    var Rbind: Int = 0
 
 }
 
@@ -43,8 +48,8 @@ func validateStatement(for statement: String) -> [any Error] {
             print("adding invalid operator")
             issues.append(EvalError.InvalidOperator(operator: cur))
         }
-        if (cur == "(") {tracker.bind += 1; continue;}
-        if (cur == ")") {tracker.bind -= 1; continue;}
+        if (cur == "(") {tracker.Rbind += 1; continue;}
+        if (cur == ")") {tracker.Lbind += 1; continue;}
         if (isVariable(value: cur)) {tracker.variable += 1; continue}
         if (OperatorParser().isLeadingOperator(value: cur)) {tracker.lop += 1; continue}
         if (OperatorParser().isOperator(value: cur)) {tracker.op += 1; continue}
@@ -53,11 +58,11 @@ func validateStatement(for statement: String) -> [any Error] {
         print("adding  malformed from tracker - 1 rule")
         issues.append(EvalError.MalformedStatement)
     }
-    if (tracker.bind != 0) {
+    if (tracker.Lbind != tracker.Rbind) {
         print("adding  unbalanced parens")
         issues.append(ValidationError.UnbalancedParens(""))
     }
-    if (tracker.op != 0 && tracker.variable > tracker.bind) {
+    if (tracker.op != 0 && tracker.variable > tracker.Lbind + tracker.Rbind) {
         print("adding  malformed from tracker variable AND BINSINF RULE")
         issues.append(EvalError.MalformedStatement)
     }

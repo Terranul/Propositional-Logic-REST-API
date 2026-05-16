@@ -3,10 +3,9 @@ import Vapor
 struct EqualController: RouteCollection {
 
     func boot(routes: any Vapor.RoutesBuilder) throws {
-        let evals: any RoutesBuilder = routes.grouped("equal")
+        let evals: any RoutesBuilder = routes.grouped("equal").grouped(EqualValidation())
         evals.post(":target", use: getEqivalencesTarget)
         evals.post("", use: getEqivalences)
-
     }
 
     func getEqivalencesTarget(req: Request) throws -> EqualContentTargetDTO {

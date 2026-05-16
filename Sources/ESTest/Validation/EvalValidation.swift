@@ -6,6 +6,17 @@ enum ValidationError: Error {
     case MissingOuterParens(String)
     case MissingPathParamater(String)
     case MissingInputField(String) // in body
+
+    var description: String  {
+        switch (self) {
+            case .UnbalancedParens(let message):
+                return "Unbalanced parens; \(message)"
+            default:
+            //  TODO: CREATE EXHAUSTIVE CASES FOR ALL when you refactor the error handling later on
+                return "internal error"
+        }
+    }
+
 }
 
 // surface level validation checks
