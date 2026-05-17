@@ -16,7 +16,6 @@ enum ValidationError: Error {
                 return "internal error"
         }
     }
-
 }
 
 // surface level validation checks
@@ -88,9 +87,9 @@ public struct EvalValidation: Middleware {
         } else if (result < 0) {
             throw ValidationError.UnbalancedParens("Unbalanced Parenthesis. Too many left parens.")
         }
-        if ((Array(statement)[0] != "(" && Array(statement)[statement.count - 1] != ")") && Array(statement).count > 2) {
-            throw ValidationError.MissingOuterParens("Missing outer pair of parens.")
-        }
+        // if ((Array(statement)[0] != "(" && Array(statement)[statement.count - 1] != ")") && Array(statement).count > 2) {
+        //     throw ValidationError.MissingOuterParens("Missing outer pair of parens.")
+        // }
     }
 
     func verifyParams(request: Request) throws {
@@ -105,3 +104,25 @@ public struct EvalValidation: Middleware {
 
     }
 }
+
+extension ValidatorResults {
+
+    public struct Statement: ValidatorResult {
+
+        public var errors: [any Error]
+
+        public var isFailure: Bool
+
+        public var successDescription: String? = "Syntactically valid statement"
+
+        public var failureDescription: String? {
+            for error in errors {
+                return "a"
+            }
+            return "h"
+        }
+
+
+    }
+}
+

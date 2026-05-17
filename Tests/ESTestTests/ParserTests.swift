@@ -40,7 +40,7 @@ let a = 9
 
 @Test func testStatement() async throws {
     let parser = StatementParser()
-    let value = "~(a^~(av~c))"
+    let value = "~~a"
     // small enough example to test exhaustively
     do {
         let base: any Statement = try parser.parseStatement(value: value)

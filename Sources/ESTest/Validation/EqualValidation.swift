@@ -44,3 +44,10 @@ public struct EqualValidation: Middleware {
         return ParsingErrorsDTO(content: issues)
     }  
 }
+
+extension EvalDecoder {
+    
+    static func validations() {
+        
+    }
+}

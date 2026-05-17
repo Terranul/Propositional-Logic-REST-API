@@ -36,7 +36,7 @@ class XOROperator: Operator {
     }
 
     func getStringRepresentation() -> String {
-        return "+"
+        return "#"
     }
 
 }

@@ -12,8 +12,8 @@ public struct StatementParser {
         guard value != "" else {
             throw EvalError.MalformedStatement
         }
-        let leadingOperator: any LeadingOperator = operatorParser.getLeadingOperator(value: value)
-        let rmValue: String = operatorParser.removeLeadingOperator(value: value)
+        let leadingOperator: any LeadingOperator = getLeadingOperator(value: value)
+        let rmValue: String = removeLeadingOperator(value: value, lop: leadingOperator)
         if (isRawStatement(value: rmValue)) {
             return try parseRawStatement(variable: rmValue, leadingOp: leadingOperator)
         } else {
@@ -90,4 +90,20 @@ public struct StatementParser {
         return value[firstIndex] == "~"
     }
 
+    private func getLeadingOperator(value: String) -> any LeadingOperator {
+        let opParser: OperatorParser = OperatorParser()
+        let lopList = value.prefix(while: { opParser.isLeadingOperator(value: $0) })
+        .map { opParser.getLeadingOperator(value: $0) }
+        if (lopList.isEmpty) {
+            return DefaultLeadingOperator()
+        } else if (lopList.count > 1) {
+            return ComplexLeadingOperator(guts: lopList)
+        } else {
+            return lopList[0]
+        }
+    }
+
+    private func removeLeadingOperator(value: String, lop: any LeadingOperator) -> String{
+        return String(value.dropFirst(lop.getLength()))
+    }
 }
