@@ -1,3 +1,9 @@
+extension String {
+    func getChar(index: Int) -> Character{
+        return self[self.index(self.startIndex, offsetBy: index)]
+    }
+}
+
 extension Array {
     
     func access(index value: Int) -> Element? {
