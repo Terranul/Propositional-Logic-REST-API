@@ -13,7 +13,7 @@ struct EvalBridge {
 
     func getStatement(_ script: String) throws -> any Statement {
         let compactScript: String = script.replacing(" ", with: "")
-        return try StatementParser().parseStatement(value: compactScript)
+        return try groupedParser().parseStatement(value: compactScript)
     }
 
     func getPrettyStatement(statement: any Statement) -> String{

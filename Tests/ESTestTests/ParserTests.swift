@@ -60,7 +60,7 @@ let a = 9
 
 @Test func groupParserTests() async throws {
     let parser: groupedParser = groupedParser()
-    let value = "(avbvc)"
+    let value = "(a^bv~c)"
     do {
         let base: any Statement = try parser.parseStatement(value: value)
          #expect(base.getStatement() == "((a v b) v c)")

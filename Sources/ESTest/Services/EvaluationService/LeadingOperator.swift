@@ -1,8 +1,11 @@
+// TODO: Leading Operators and Operators should become swift enums since indentification checks are so important
+
 protocol LeadingOperator {
 
     func getStringRepresentation() -> String
     func applyOperation(value: Bool) -> Bool
     func getLength() -> Int
+    func negate() -> any LeadingOperator
 
 }
 
@@ -23,6 +26,10 @@ class NotOperator: LeadingOperator {
         return !value
     }
 
+    func negate() -> any LeadingOperator {
+        return DefaultLeadingOperator()
+    }
+
 }
 
 class FalseSlashOperator: LeadingOperator {
@@ -33,6 +40,10 @@ class FalseSlashOperator: LeadingOperator {
 
     func applyOperation(value: Bool) -> Bool {
         return false
+    }
+
+    func negate() -> any LeadingOperator {
+        return TrueSlashOperator()
     }
 
 }
@@ -47,6 +58,10 @@ class TrueSlashOperator: LeadingOperator {
         return true
     }
 
+    func negate() -> any LeadingOperator {
+        return FalseSlashOperator()
+    }
+
 }
 
 class DefaultLeadingOperator: LeadingOperator {
@@ -57,6 +72,10 @@ class DefaultLeadingOperator: LeadingOperator {
 
     func applyOperation(value: Bool) -> Bool {
         return value
+    }
+
+    func negate() -> any LeadingOperator {
+        return NotOperator()
     }
 
     func getLength() -> Int {
@@ -87,6 +106,10 @@ class ComplexLeadingOperator: LeadingOperator {
         return self.guts.reduce("") { acc, lop in
             return acc + lop.getStringRepresentation()
         }
+    }
+
+    func negate() -> any LeadingOperator {
+        return ComplexLeadingOperator(guts: self.guts + [NotOperator()])
     }
 
     func getLength() -> Int {

@@ -1,9 +1,9 @@
 class ComplexStatement: Statement {
 
-    let rhs: any Statement
-    let lhs: any Statement
-    let op: any Operator
-    let leadingOp: any LeadingOperator
+    var rhs: any Statement
+    var lhs: any Statement
+    var op: any Operator
+    var leadingOp: any LeadingOperator
 
 
     func evaluate(resolutionMap: [Character: Bool]) throws-> Bool {
@@ -20,8 +20,22 @@ class ComplexStatement: Statement {
         self.leadingOp = leadingOp
     }
 
+    func copy() -> any Statement {
+        let lhsCpy: any Statement = lhs.copy()
+        let rhsCpy: any Statement = rhs.copy()
+        return ComplexStatement(lhs: lhsCpy, rhs: rhsCpy, op: self.op, leadingOp: self.leadingOp) // this is fine
+    }
+
     func getStatement() -> String {
         return "\(leadingOp.getStringRepresentation())(\(lhs.getStatement()) \(op.getStringRepresentation()) \(rhs.getStatement()))"
+    }
+
+    func toLRF() -> any Statement {
+
+    }
+
+    func negate() {
+        self.leadingOp = leadingOp.negate()
     }
 
 }

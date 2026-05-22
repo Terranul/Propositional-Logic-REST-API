@@ -11,15 +11,24 @@ struct groupedParser: Parser {
         let start: DefaultIndices<String>.Element = value.index(after: opIndex)
         let end: String.Index = value.index(before: value.endIndex)
         let extractedString: [Substring.Element] = Array(value[start..<end])
-        return applyExtraBinding(extractedString: extractedString)
+        // we need to be careful since the outside parens can obfuscate the leading operator
+        // the only case where we have a leading operator that can be a nuisance is when we have a raw statement
+        // the logic will only return false when the statement is a raw statement
+        if (!(extractedString.count <= 3 && extractedString[0] == "(")) {
+            return applyExtraBinding(extractedString: extractedString)
+        }
+        return String(extractedString)
     }
 
     func parseLHS(value: String, opIndex: DefaultIndices<String>.Element) -> String {
-         // we know the first character must be (
+        // we know the first character must be (
         let start: String.Index = value.index(value.startIndex, offsetBy: 1)
         let end: DefaultIndices<String>.Element = opIndex
         let extractedString: [Substring.Element] = Array(value[start..<end])
-        return applyExtraBinding(extractedString: extractedString)
+        if (!(extractedString.count <= 3 && extractedString[0] == "(")) {
+            return applyExtraBinding(extractedString: extractedString)
+        }
+        return String(extractedString)
     }
 
     private func applyExtraBinding(extractedString: [Substring.Element]) -> String {
@@ -33,15 +42,15 @@ struct groupedParser: Parser {
 
     func getSplitIndex(value: String) throws -> String.Index {
         // find the first index where paren count is 0
-        var parenCount = -1
-        for char in value {
+        var parenCount = 1
+        for char in value.reversed() { // reverse so that we ensure the rightmost chained operator is split
             if (char == ")") {
                 parenCount -= 1
             } else if (char == "(") {
                 parenCount += 1
             } else if (parenCount == 0 && operatorParser.isOperator(value: char))
             {
-                return value.firstIndex(of: char)!
+                return value.lastIndex(of: char)!
             }
         }
         throw EvalError.InvalidOperator(operator: "x")
@@ -52,8 +61,6 @@ struct groupedParser: Parser {
     }
 
     func parseRawStatement(value: String, lop: any LeadingOperator) throws -> RawStatement {
-        // the value will always be wrapped: (a) becuase of the way I apply the paren inclusion logic
-        let char: Character = value.getChar(index: 1)
-        return RawStatement(variable: char, leadingOp: lop)
+        return RawStatement(variable: Character(value), leadingOp: lop)
     }
 }
