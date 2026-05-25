@@ -13,17 +13,23 @@ class ComplexStatement: Statement {
         return leadingOp.applyOperation(value: result)
     }
 
-    init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator) {
+    required init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator) {
         self.rhs = rhs
         self.lhs = lhs
         self.op = op
         self.leadingOp = leadingOp
     }
 
-    func copy() -> any Statement {
+    func copy() -> Self {
         let lhsCpy: any Statement = lhs.copy()
         let rhsCpy: any Statement = rhs.copy()
-        return ComplexStatement(lhs: lhsCpy, rhs: rhsCpy, op: self.op, leadingOp: self.leadingOp) // this is fine
+
+        return Self(
+        lhs: lhsCpy,
+        rhs: rhsCpy,
+        op: op,
+        leadingOp: leadingOp
+    )
     }
 
     func getStatement() -> String {

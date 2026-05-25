@@ -1,4 +1,4 @@
-protocol Statement {
+protocol Statement: AnyObject {
 
     // master function to return the value of the propositional statement given the inputs
     // assume all related validity checks have occured and been addressed prior to running this
@@ -19,5 +19,7 @@ protocol Statement {
     func negate()
 
     // get a deep copy of the statement
-    func copy() -> any Statement
+    func copy() -> Self
+
+    init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator)
 }
