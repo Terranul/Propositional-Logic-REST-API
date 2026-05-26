@@ -7,17 +7,22 @@ class RawStatement: Statement {
         self.variable = variable
         self.leadingOp = leadingOp
     }
+
+    func copy() -> any Statement {
+        return RawStatement(variable: variable, leadingOp: leadingOp)
+    }
+
+    func setLop(lop: any LeadingOperator) {
+        self.leadingOp = lop
+    }
     
     func toLRF() -> any Statement {
-        
+        // already in lrf, so we can know just return self
+        return self
     }
 
     func negate() {
         leadingOp = leadingOp.negate()
-    }
-
-    func copy() -> any Statement {
-        return RawStatement(variable: self.variable, leadingOp: self.leadingOp)
     }
 
     func evaluate(resolutionMap: [Character: Bool]) throws -> Bool {

@@ -16,10 +16,20 @@ protocol Statement: AnyObject {
     // False and True simplfications lead to predictable but many quirks. Read the docs
     func toLRF() -> any Statement
 
+    // The Conjunctive Normal Form (CNF) conversion
+    func toCNF() -> any Statement
+
     func negate()
 
     // get a deep copy of the statement
-    func copy() -> Self
+    func copy() -> any Statement
 
-    init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator)
+    // replaces the current leading operator with the lop argument
+    // ensure you have a single reference before calling this function
+    func setLop(lop: any LeadingOperator) 
+
+
+    // getters ________________________________________
+
+
 }

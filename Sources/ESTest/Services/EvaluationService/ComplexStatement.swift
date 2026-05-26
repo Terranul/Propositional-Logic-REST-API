@@ -1,5 +1,6 @@
 class ComplexStatement: Statement {
 
+
     var rhs: any Statement
     var lhs: any Statement
     var op: any Operator
@@ -20,11 +21,18 @@ class ComplexStatement: Statement {
         self.leadingOp = leadingOp
     }
 
-    func copy() -> Self {
+
+    // ((a ^ b) v (d ^ c))  -> 
+
+    func toCNF() -> any Statement {
+        
+    }
+
+    func copy() -> any Statement {
         let lhsCpy: any Statement = lhs.copy()
         let rhsCpy: any Statement = rhs.copy()
 
-        return Self(
+        return ComplexStatement(
         lhs: lhsCpy,
         rhs: rhsCpy,
         op: op,
@@ -37,11 +45,28 @@ class ComplexStatement: Statement {
     }
 
     func toLRF() -> any Statement {
-
+        if (leadingOp is DefaultLeadingOperator) {
+            let lrflhs: any Statement = lhs.toLRF()
+            let lrfrhs: any Statement = rhs.toLRF()
+            return ComplexStatement(lhs: lrflhs, rhs: lrfrhs, op: self.op, leadingOp: DefaultLeadingOperator())
+        } else {
+            return leadingOp.pushInward(lhs: &self.lhs, rhs: &self.rhs, op: self.op).toLRF()
+        }
     }
 
     func negate() {
         self.leadingOp = leadingOp.negate()
+    }
+
+    func setLop(lop: any LeadingOperator) {
+        self.leadingOp = lop
+    }
+
+
+    // getters
+
+    func getOperator() -> any Operator {
+        return op
     }
 
 }

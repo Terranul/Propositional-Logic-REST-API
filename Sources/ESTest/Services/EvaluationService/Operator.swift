@@ -170,11 +170,12 @@ class NANDOperator: Operator {
 
 }
 
-func withUniqueReference<T: Statement & AnyObject>(value: inout T, _ operation: (any Statement) -> (T)) -> T {
-    if (isKnownUniquelyReferenced(&value)) {
+func withUniqueReference(value: inout any Statement, _ operation: (any Statement) -> (any Statement)) -> any Statement {
+    var conform: AnyObject = value as AnyObject
+    if (isKnownUniquelyReferenced(&conform)) {
         return operation(value)
     } else {
-        let copy: T = value.copy()
+        let copy: any Statement = value.copy()
         value = copy
         return operation(copy)
     }
