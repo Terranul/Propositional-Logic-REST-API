@@ -106,7 +106,7 @@ class BICOperator: Operator {
         let minusRhs: any Statement = rhs.copy()
         minusRhs.negate()
         return ComplexStatement(
-            lhs: ComplexStatement(lhs: lhs, rhs: rhs, op: AndOperator(), leadingOp: DefaultLeadingOperator()), 
+            lhs: ComplexStatement(lhs: lhs.copy(), rhs: rhs.copy(), op: AndOperator(), leadingOp: DefaultLeadingOperator()), 
             rhs: ComplexStatement(lhs: minusLhs, rhs: minusRhs, op: AndOperator(), leadingOp: DefaultLeadingOperator()), 
             op: OrOperator(), 
             leadingOp: DefaultLeadingOperator())
@@ -132,8 +132,10 @@ class IMPOperator: Operator {
     }
 
     func getPrimitiveRepresentation(lhs: any Statement, rhs: any Statement) -> ComplexStatement {
+        // remember, we can only reuse objects we have copied
+        let lhsCpy: any Statement = lhs.copy()
         lhs.negate()
-        return ComplexStatement(lhs: lhs, rhs: rhs, op: OrOperator(), leadingOp: DefaultLeadingOperator())
+        return ComplexStatement(lhs: lhsCpy, rhs: rhs, op: OrOperator(), leadingOp: DefaultLeadingOperator())
     }
 
     

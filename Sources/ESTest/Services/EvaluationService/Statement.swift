@@ -28,6 +28,8 @@ protocol Statement: AnyObject {
     // ensure you have a single reference before calling this function
     func setLop(lop: any LeadingOperator) 
 
+    static func == (lhs: Self, rhs: Self) -> Bool
+
 
     // getters ________________________________________
 

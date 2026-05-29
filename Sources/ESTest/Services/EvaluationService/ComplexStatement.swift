@@ -1,6 +1,5 @@
 class ComplexStatement: Statement {
 
-
     var rhs: any Statement
     var lhs: any Statement
     var op: any Operator
@@ -25,7 +24,22 @@ class ComplexStatement: Statement {
     // ((a ^ b) v (d ^ c))  -> 
 
     func toCNF() -> any Statement {
-        
+        self.lhs = lhs.toCNF()
+        self.rhs = rhs.toCNF()
+        if (op is OrOperator) {
+            // distribution applies
+            if let complexLhs: ComplexStatement = self.lhs as? ComplexStatement, complexLhs.op is AndOperator {
+                let result: ComplexStatement = distribute(self.rhs, over: complexLhs, op: self.op)
+                return result.toCNF()
+            }
+            if let complexRhs: ComplexStatement = self.rhs as? ComplexStatement, complexRhs.op is AndOperator {
+                let result: ComplexStatement = distribute(self.rhs, over: complexRhs, op: self.op)
+                return result.toCNF()
+            }
+            // both are RawStatements binded by an or, all is fine
+            return self
+        }
+        return self
     }
 
     func copy() -> any Statement {
@@ -46,9 +60,12 @@ class ComplexStatement: Statement {
 
     func toLRF() -> any Statement {
         if (leadingOp is DefaultLeadingOperator) {
-            let lrflhs: any Statement = lhs.toLRF()
-            let lrfrhs: any Statement = rhs.toLRF()
-            return ComplexStatement(lhs: lrflhs, rhs: lrfrhs, op: self.op, leadingOp: DefaultLeadingOperator())
+            // still may be a chance the operator is not normalized to AND/OR
+            let norm: ComplexStatement = self.op.getPrimitiveRepresentation(lhs: self.lhs, rhs: self.rhs)
+            // the primitive representations will always have defaultLeadingOperator
+            let lrflhs: any Statement = norm.lhs.toLRF()
+            let lrfrhs: any Statement = norm.rhs.toLRF()
+            return ComplexStatement(lhs: lrflhs, rhs: lrfrhs, op: norm.op, leadingOp: DefaultLeadingOperator())
         } else {
             return leadingOp.pushInward(lhs: &self.lhs, rhs: &self.rhs, op: self.op).toLRF()
         }
@@ -62,11 +79,22 @@ class ComplexStatement: Statement {
         self.leadingOp = lop
     }
 
+    static func == (lhs: ComplexStatement, rhs: ComplexStatement) -> Bool {
+        return lhs.getStatement() == rhs.getStatement()
+    }
+
 
     // getters
 
     func getOperator() -> any Operator {
         return op
+    }
+
+    private func overwrite(value: ComplexStatement) {
+        self.leadingOp = value.leadingOp
+        self.lhs = value.lhs
+        self.rhs = value.rhs
+        self.op = value.op
     }
 
 }

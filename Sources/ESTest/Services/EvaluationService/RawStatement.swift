@@ -1,11 +1,16 @@
 class RawStatement: Statement {
 
+
     var variable: Character
     var leadingOp: any LeadingOperator
 
     init(variable: Character, leadingOp: any LeadingOperator) {
         self.variable = variable
         self.leadingOp = leadingOp
+    }
+
+    static func == (lhs: RawStatement, rhs: RawStatement) -> Bool {
+        return lhs.getStatement() == rhs.getStatement()
     }
 
     func copy() -> any Statement {
@@ -34,5 +39,10 @@ class RawStatement: Statement {
 
     func getStatement() -> String {
         return "\(leadingOp.getStringRepresentation())\(String(variable))"
+    }
+
+    func toCNF() -> any Statement {
+        // already in cnf -> no operator
+        return self
     }
 }
