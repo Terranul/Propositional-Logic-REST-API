@@ -1,3 +1,6 @@
+// A placeholder to make a future transition to a dedicated Variable type easier
+typealias Variable = Character
+
 protocol Statement: AnyObject {
 
     // master function to return the value of the propositional statement given the inputs
@@ -30,8 +33,9 @@ protocol Statement: AnyObject {
 
     static func == (lhs: Self, rhs: Self) -> Bool
 
-
     // getters ________________________________________
+
+    func getVariables() -> Set<Variable>
 
 
 }

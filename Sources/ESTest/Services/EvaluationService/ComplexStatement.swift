@@ -4,8 +4,8 @@ class ComplexStatement: Statement {
     var lhs: any Statement
     var op: any Operator
     var leadingOp: any LeadingOperator
-
-
+    var variables: Set<Variable>
+    
     func evaluate(resolutionMap: [Character: Bool]) throws-> Bool {
         let lhsResult = try lhs.evaluate(resolutionMap: resolutionMap)
         let rhsResult: Bool = try rhs.evaluate(resolutionMap: resolutionMap)
@@ -18,6 +18,7 @@ class ComplexStatement: Statement {
         self.lhs = lhs
         self.op = op
         self.leadingOp = leadingOp
+        self.variables = lhs.getVariables().intersection(rhs.getVariables())
     }
 
 
@@ -85,6 +86,10 @@ class ComplexStatement: Statement {
 
 
     // getters
+
+    func getVariables() -> Set<Variable> {
+        return self.variables
+    }   
 
     func getOperator() -> any Operator {
         return op

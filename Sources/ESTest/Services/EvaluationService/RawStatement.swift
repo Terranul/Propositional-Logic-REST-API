@@ -1,7 +1,7 @@
 class RawStatement: Statement {
 
 
-    var variable: Character
+    var variable: Variable
     var leadingOp: any LeadingOperator
 
     init(variable: Character, leadingOp: any LeadingOperator) {
@@ -40,6 +40,10 @@ class RawStatement: Statement {
     func getStatement() -> String {
         return "\(leadingOp.getStringRepresentation())\(String(variable))"
     }
+
+    func getVariables() -> Set<Variable> {
+        return [self.variable]
+    } 
 
     func toCNF() -> any Statement {
         // already in cnf -> no operator
