@@ -19,9 +19,9 @@ func distribute(_ lhs: any Statement, over rhs: ComplexStatement, op: any Operat
 // REQUIRES: A common statement between one side and the inner statements of the other side
 // reversal of distribute
 // ((a ^ b) v (a ^ c)) -> a ^ (b v c)
-func extract(from value: ComplexStatement) throws -> ComplexStatement {
-    // we must first identify the common element, meaning we must do 4 checks
-    
-}
+// func extract(from value: ComplexStatement) throws -> ComplexStatement {
+//     // we must first identify the common element, meaning we must do 4 checks
+
+// }
 
 // 

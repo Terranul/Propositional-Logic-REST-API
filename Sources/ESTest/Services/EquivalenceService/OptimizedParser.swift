@@ -29,7 +29,6 @@ extension Array {
 */
 
 fileprivate typealias Op = Character
-fileprivate typealias Variable = Character
 fileprivate typealias LeadingOp = Character
 fileprivate typealias Binding = Character // both ( and ) parens
 
