@@ -13,7 +13,7 @@ class ComplexStatement: Statement {
         return leadingOp.applyOperation(value: result)
     }
 
-    required init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator) {
+    init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator) {
         self.rhs = rhs
         self.lhs = lhs
         self.op = op
@@ -21,6 +21,32 @@ class ComplexStatement: Statement {
         self.variables = lhs.getVariables().intersection(rhs.getVariables())
     }
 
+    // init from a list of components with a shared operator
+    // meant to replicate (a ^ b ^ c ^ d)
+    // default leading operator used in the final statement -> (a ^ (b ^ (c ^ d)))
+    init(components: [any Statement], op: any Operator) {
+        self.lhs = components[components.count - 1]
+        self.rhs = ComplexStatement.buildStatement(components: components, op: op, count: components.count - 1)
+        self.op = op
+        self.leadingOp = DefaultLeadingOperator()
+        self.variables = lhs.getVariables().intersection(rhs.getVariables())
+    }
+
+    private static func buildStatement(components: [any Statement], op: any Operator, count: Int)
+        -> ComplexStatement
+    {
+        if (count == 1) {
+            return ComplexStatement(
+                lhs: components[1], rhs: components[0], op: op, leadingOp: DefaultLeadingOperator())
+        } else {
+            return ComplexStatement(
+                lhs: components[count - 1],
+                rhs: ComplexStatement.buildStatement(
+                    components: components, op: op, count: count - 1),
+                op: op,
+                leadingOp: DefaultLeadingOperator())
+        }
+    }
 
     // ((a ^ b) v (d ^ c))  -> 
 
@@ -83,7 +109,6 @@ class ComplexStatement: Statement {
     static func == (lhs: ComplexStatement, rhs: ComplexStatement) -> Bool {
         return lhs.getStatement() == rhs.getStatement()
     }
-
 
     // getters
 

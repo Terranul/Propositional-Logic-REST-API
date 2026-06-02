@@ -35,6 +35,10 @@ struct BitField: Hashable {
         return self.value << BitField.FLAG_BITS_BEGIN_INDEX
     }
 
+    func removeFlagBits() -> Int32 {
+        return Int32(UInt32(self.value) & UInt32(4294901760))
+    }
+
     // debug
     func getStatementBits() -> String {
         var stringStatements: String = ""
