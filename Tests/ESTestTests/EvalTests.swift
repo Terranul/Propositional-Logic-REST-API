@@ -40,3 +40,9 @@ import Testing
         #expect(Bool(false))
     }
 }
+
+@Test func initCompStatementWithComponents() async throws {
+    let components = [RawStatement(variable: "a", leadingOp: NotOperator()), RawStatement(variable: "b", leadingOp: NotOperator()), RawStatement(variable: "c", leadingOp: DefaultLeadingOperator())]
+    let complexStatement = ComplexStatement(components: components, op: OrOperator())
+    #expect(complexStatement.getStatement() == "(~a v (~b v c))")
+}

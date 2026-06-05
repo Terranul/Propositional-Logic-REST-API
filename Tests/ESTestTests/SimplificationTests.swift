@@ -48,7 +48,7 @@ struct SimpTests {
         let s: BitField = BitField(from: [false, false, true, false])
         do {
             let mergedT = try t.merge(b: s)
-            #expect(mergedT.getStatementBits() == "00000000000100000000000000001010") 
+            #expect(mergedT.getStatementBits() == "00000000000010000000000000001010") 
         } catch {
             assertionFailure()
         }
@@ -58,10 +58,10 @@ struct SimpTests {
             assertionFailure()
         } catch {
         }
-        let a = createBitField(value: "00000000000001000000000000000111")
-        let c = createBitField(value: "00000000000010000000000000000101")
+        let a = createBitField(value: "00000000000001000000000000000011")
+        let c = createBitField(value: "00000000000000100000000000000111")
         do {
-            let mergedA = try a.merge(b: t)
+            let mergedA = try a.merge(b: c)
             #expect(Bool(false))
         } catch {
         }
@@ -85,5 +85,20 @@ struct SimpTests {
             [true,  true,  true]
         ])
         let primeImplicants: Set<BitField> = try getPrimeImplicants(minterms: primeImps)
+    }
+    @Test func testGetEssentialImplicants() async throws {
+        let rawImps = getRawBitfields([
+            [false, false, true],
+            [false, true,  true],
+            [true,  false, true],
+            [true,  true,  false],
+            [true,  true,  true]
+        ])
+        var primeImps: Set<BitField> = []
+        primeImps.insert(createBitField(value: "00000000000000010000000000000111"))
+        primeImps.insert(createBitField(value: "00000000000001100000000000000111"))
+        let essentialImplicants: Set<BitField> = getEssentialImplicants(primeImplicants: primeImps, outcomes: rawImps)
+        let statement = convertToCNF(outcomes: essentialImplicants, variables: ["a", "b", "c"])
+        print(statement.getStatement())
     }
 }

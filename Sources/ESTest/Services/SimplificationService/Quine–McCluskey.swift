@@ -6,7 +6,7 @@ enum SimpErrors: Error {
 
 struct BitField: Hashable {
 
-    static let FLAG_BITS_BEGIN_INDEX: Int = 17
+    static let FLAG_BITS_BEGIN_INDEX: Int = 16
 
     /*
         Represents the T/F sequence of a given inputs to a statements
@@ -31,12 +31,23 @@ struct BitField: Hashable {
         value += 1 << position
     }
 
+    // there is currently a pretty critical bug becuase we don't use unsigned Int and we shift left when supporting max (16) variables
+    // we would get ones instead of zeroes
+    // this is unlikely to happen in my testing, and I'm only ever going to be using this so...
     func extractStatementBits() -> Int32 {
         return self.value << BitField.FLAG_BITS_BEGIN_INDEX
     }
 
+    func extractFlagBits() -> Int32 {
+        return self.value >> BitField.FLAG_BITS_BEGIN_INDEX
+    }
+
     func removeFlagBits() -> Int32 {
         return Int32(UInt32(self.value) & UInt32(4294901760))
+    }
+
+    func doesContainFlagBit() -> Bool {
+        return self.extractFlagBits() > 0
     }
 
     // debug
@@ -69,16 +80,15 @@ struct BitField: Hashable {
     // size is the number of variables (or the size of the statement sequence)
     func merge(b: BitField) throws -> BitField {
         // when we xor, we want only one single bit remaining
-        let onlyStatementSequenceA: Int32 = self.value << BitField.FLAG_BITS_BEGIN_INDEX
-        let onlyStatementSequenceB: Int32 = b.value << BitField.FLAG_BITS_BEGIN_INDEX
-        let diffBits: Int32 = onlyStatementSequenceA ^ onlyStatementSequenceB
+        let diffStatBits: Int32 = self.extractStatementBits() ^ b.extractStatementBits()
+        let diffFlagBits: Bool = self.extractFlagBits() == b.extractFlagBits()
         // BitFields were the statement sequence is all 0's should have been filtered out preliminarily but we will still account for it
-        if (diffBits == 0) {
+        if (diffStatBits == 0) {
             throw SimpErrors.InvalidBitMerge
         } else {
-            if (diffBits & (diffBits - 1) == 0) {
+            if (diffStatBits & (diffStatBits - 1) == 0 && diffFlagBits) {
                 // bingo 
-                return perfromMerge(a: self, b: b, on: (diffBits >> BitField.FLAG_BITS_BEGIN_INDEX).trailingZeroBitCount)
+                return perfromMerge(a: self, b: b, on: (diffStatBits >> BitField.FLAG_BITS_BEGIN_INDEX).trailingZeroBitCount)
             } else {
                 throw SimpErrors.InvalidBitMerge
             }
@@ -107,15 +117,13 @@ struct BitField: Hashable {
     }
 }
 
-// func getMintermTable(value: any Statement) throws -> Dictionary<Int, [Bool]> {
-//     let possibleOutputs: [[Character : Bool]] = EvalBridge().getAllResults(variables: Array(value.getVariables()))
-//     let (variables, values): ([Character], [[Bool]]) = convertInputList(possibleOutputs)
-//     let rawBitfields: Set<BitField> = getRawBitfields(values)
-//     let primeImplicants: Set<BitField> = try getPrimeImplicants(minterms: rawBitfields, varCount: variables.count)
-
-
-
-// }
+func getEssentialImplicants(value: any Statement) throws -> Set<BitField> {
+    let possibleOutputs: [[Character : Bool]] = EvalBridge().getAllResults(variables: Array(value.getVariables()))
+    let (variables, values): ([Character], [[Bool]]) = convertInputList(possibleOutputs)
+    let rawBitfields: Set<BitField> = getRawBitfields(values)
+    let primeImplicants: Set<BitField> = try getPrimeImplicants(minterms: rawBitfields)
+    return getEssentialImplicants(primeImplicants: primeImplicants, outcomes: rawBitfields)
+}
 
 func getRawBitfields(_ outcomes: [[Bool]]) -> Set<BitField> {
     return Set<BitField>(
@@ -125,17 +133,27 @@ func getRawBitfields(_ outcomes: [[Bool]]) -> Set<BitField> {
 }
 
 func getPrimeImplicants(minterms: Set<BitField>) throws -> Set<BitField> {
+    print("New Iteration bitch ------")
     var primeImplicants: Set<BitField> = Set<BitField>()
+    var merged: Dictionary<BitField, Bool> = Dictionary(uniqueKeysWithValues: minterms.map {($0, false)})
     var numberOfMerges: Int = 0
     for a: BitField in minterms {
         for b: BitField in minterms {
+            print("------------------------------")
             if (a != b) {
+                print("attempting merge between a: \(a.getStatementBits()) and b: \(b.getStatementBits())")
                 do {
                     let merge: BitField = try a.merge(b: b)
-                    primeImplicants.insert(merge)
-                    numberOfMerges += 1
+                    if (!primeImplicants.contains(merge)) {
+                        primeImplicants.insert(merge)
+                        merged[a] = true
+                        merged[b] = true
+                        numberOfMerges += 1
+                        print("merge successful with merge being: \(merge.getStatementBits())")
+                    }
                 } catch SimpErrors.InvalidBitMerge {
                     // unable to merge
+                    print("merge denied")
                     continue
                 }
             }
@@ -145,6 +163,11 @@ func getPrimeImplicants(minterms: Set<BitField>) throws -> Set<BitField> {
         // all possible merges have been completed
         return minterms
     } else {
+        for key: BitField in merged.keys {
+            if (!merged[key]!) {
+                primeImplicants.insert(key)
+            }
+        }
         return try getPrimeImplicants(minterms: primeImplicants)
     }
 }
@@ -177,6 +200,8 @@ func getEssentialImplicants(primeImplicants: Set<BitField>, outcomes: Set<BitFie
     for outcome: BitField in outcomes {
         for prime in primeImplicants {
             if (prime.matches(with: outcome)) {
+                print("found a match between \(prime.getStatementBits()) and \(outcome.getStatementBits())")
+                print("------------------------------")
                 essentialDict[outcome]!.insert(prime)
             }
         }
@@ -184,6 +209,8 @@ func getEssentialImplicants(primeImplicants: Set<BitField>, outcomes: Set<BitFie
     for key in essentialDict.keys {
         if (essentialDict[key]!.count == 1) {
             // we have found a minimal outcome
+            print("found a minimal outcome for \(key.getStatementBits())")
+            print("------------------------------")
             essentialImplicants.insert(essentialDict[key]!.first!)
             essentialDict[key] = nil
         }
@@ -192,8 +219,10 @@ func getEssentialImplicants(primeImplicants: Set<BitField>, outcomes: Set<BitFie
     for key in essentialDict.keys {
         // we must first figure out if this is already covered by an essential implicant
         if (!essentialDict[key]!.contains(essentialImplicants)) {
+            print("found a non minimal implicant with \(essentialDict[key]!.first!.getStatementBits())")
             essentialImplicants.insert(essentialDict[key]!.first!)
         }
     }
+    print(essentialImplicants.description)
     return essentialImplicants
 }
