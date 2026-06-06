@@ -1,7 +1,7 @@
 // A placeholder to make a future transition to a dedicated Variable type easier
 typealias Variable = Character
 
-protocol Statement: AnyObject {
+protocol Statement: AnyObject, Equatable {
 
     // master function to return the value of the propositional statement given the inputs
     // assume all related validity checks have occured and been addressed prior to running this
@@ -32,6 +32,9 @@ protocol Statement: AnyObject {
     func setLop(lop: any LeadingOperator) 
 
     static func == (lhs: Self, rhs: Self) -> Bool
+
+    // a workaround to the fact == is janky with protocols
+    func isEqual(to statement: any Statement) -> Bool
 
     // getters ________________________________________
 

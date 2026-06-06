@@ -101,4 +101,16 @@ struct SimpTests {
         let statement = convertToCNF(outcomes: essentialImplicants, variables: ["a", "b", "c"])
         print(statement.getStatement())
     }
+
+    @Test func testSimplify() async throws {
+        var result: any Statement = try StatementParser().parseStatement(value: "(a^a)")
+        var simplified = try simplify(result)
+        #expect(simplified.getStatement() == "a")
+        result = try StatementParser().parseStatement(value: "(a^(avb))")
+        simplified = try simplify(result)
+        #expect(simplified.getStatement() == "a")
+        result = try StatementParser().parseStatement(value: "(((avb)^(av~b))^(bvc))")
+        simplified = try simplify(result)
+        #expect(simplified.getStatement() == "(a^(bvc))")
+    }
 }

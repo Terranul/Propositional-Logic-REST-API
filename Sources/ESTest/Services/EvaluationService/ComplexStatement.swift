@@ -18,7 +18,7 @@ class ComplexStatement: Statement {
         self.lhs = lhs
         self.op = op
         self.leadingOp = leadingOp
-        self.variables = lhs.getVariables().intersection(rhs.getVariables())
+        self.variables = lhs.getVariables().union(rhs.getVariables())
     }
 
     // init from a list of components with a shared operator
@@ -26,7 +26,11 @@ class ComplexStatement: Statement {
     // default leading operator used in the final statement -> (a ^ (b ^ (c ^ d)))
     init(components: [any Statement], op: any Operator) {
         self.lhs = components[0]
-        self.rhs = ComplexStatement.buildStatement(components: components, op: op, index: 1)
+        if (components.count == 2) {
+            self.rhs = components[1]
+        } else {
+            self.rhs = ComplexStatement.buildStatement(components: components, op: op, index: 1)
+        }
         self.op = op
         self.leadingOp = DefaultLeadingOperator()
         self.variables = lhs.getVariables().intersection(rhs.getVariables())

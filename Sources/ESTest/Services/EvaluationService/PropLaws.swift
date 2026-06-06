@@ -1,3 +1,7 @@
+enum StatementError: Error {
+    case InvalidOperation(String)
+}
+
 /*
 A suite of functions to apply logical operations to statements
 Some of these are general operations, meaning they do not ensure equivalance between the input and the result
@@ -16,12 +20,36 @@ func distribute(_ lhs: any Statement, over rhs: ComplexStatement, op: any Operat
                             leadingOp: DefaultLeadingOperator())
 }
 
-// REQUIRES: A common statement between one side and the inner statements of the other side
-// reversal of distribute
-// ((a ^ b) v (a ^ c)) -> a ^ (b v c)
-// func extract(from value: ComplexStatement) throws -> ComplexStatement {
-//     // we must first identify the common element, meaning we must do 4 checks
+//REQUIRES: A common statement between one side and the inner statements of the other side
+//reversal of distribute
+//((a ^ b) v (a ^ c)) -> a ^ (b v c)
+func extract(lhs: ComplexStatement, rhs: ComplexStatement, op: any Operator) throws -> ComplexStatement {
+    // we must first identify the common element, meaning we must do 4 checks
+    if (lhs.lhs.isEqual(to: rhs.lhs)) {
+        let newLhs: any Statement = lhs.lhs.copy()
+        
+    }
+}
 
-// }
 
-// 
+
+func absorption(for statement: ComplexStatement) throws -> any Statement{
+     // check both sides
+     if let lhs: ComplexStatement = statement.lhs as? ComplexStatement {
+        if (isValidAbsorption(lhs: statement.rhs, rhs: lhs, op: statement.op)) {
+            return statement.rhs.copy()
+        }
+     }
+     if let rhs: ComplexStatement = statement.rhs as? ComplexStatement {
+        if (isValidAbsorption(lhs: statement.lhs, rhs: rhs, op: statement.op)) {
+            return statement.lhs.copy()
+        }
+     }
+    throw StatementError.InvalidOperation("Absorption law is not applicable to the statement: \(statement.getStatement())")
+}
+
+private func isValidAbsorption(lhs: any Statement, rhs: ComplexStatement, op: any Operator) -> Bool {
+    return ((op is OrOperator && rhs.op is AndOperator) || (op is AndOperator && rhs.op is OrOperator)) &&
+            // such a pain to get equal to look nice here so I'll just do this for now
+            lhs.getStatement() == rhs.lhs.getStatement()    
+}

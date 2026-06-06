@@ -43,12 +43,17 @@ struct BitField: Hashable {
     }
 
     func removeFlagBits() -> Int32 {
-        return Int32(UInt32(self.value) & UInt32(4294901760))
+        return Int32(UInt32(self.value) & UInt32(65535))
     }
 
     func doesContainFlagBit() -> Bool {
         return self.extractFlagBits() > 0
     }
+
+    func isFlagBit(index: Int) -> Bool {
+        let flagBits: Int32 = self.extractFlagBits()
+        return (flagBits >> index) & 1 == 1
+    }   
 
     // debug
     func getStatementBits() -> String {
@@ -117,12 +122,20 @@ struct BitField: Hashable {
     }
 }
 
-func getEssentialImplicants(value: any Statement) throws -> Set<BitField> {
-    let possibleOutputs: [[Character : Bool]] = EvalBridge().getAllResults(variables: Array(value.getVariables()))
+func getEssentialImplicants(value: any Statement) throws -> ([Character], Set<BitField>) {
+    var possibleOutputs: [[Character : Bool]] = EvalBridge().getAllResults(variables: Array(value.getVariables()))
+    possibleOutputs = possibleOutputs.filter { output in
+        do {
+            // should be optimized later on
+            return try value.evaluate(resolutionMap: output)
+        } catch {
+            return false
+        }
+    }
     let (variables, values): ([Character], [[Bool]]) = convertInputList(possibleOutputs)
     let rawBitfields: Set<BitField> = getRawBitfields(values)
     let primeImplicants: Set<BitField> = try getPrimeImplicants(minterms: rawBitfields)
-    return getEssentialImplicants(primeImplicants: primeImplicants, outcomes: rawBitfields)
+    return (variables, getEssentialImplicants(primeImplicants: primeImplicants, outcomes: rawBitfields))
 }
 
 func getRawBitfields(_ outcomes: [[Bool]]) -> Set<BitField> {
