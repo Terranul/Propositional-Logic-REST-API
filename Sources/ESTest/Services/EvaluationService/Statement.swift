@@ -29,7 +29,10 @@ protocol Statement: AnyObject, Equatable {
 
     // replaces the current leading operator with the lop argument
     // ensure you have a single reference before calling this function
-    func setLop(lop: any LeadingOperator) 
+    func setLop(lop: any LeadingOperator)
+
+    // turns the lop into a DefaultLeadingOperator by pushing any other operators inwards
+    func simplifyLop() 
 
     static func == (lhs: Self, rhs: Self) -> Bool
 

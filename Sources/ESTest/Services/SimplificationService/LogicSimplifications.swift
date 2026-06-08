@@ -49,3 +49,16 @@ func convertToStatement(outcome: BitField, variables: [Variable]) -> any Stateme
         return ComplexStatement(components: rawStatements, op: AndOperator())
     }
  }
+
+// post-order traversal of the logic tree that will try to apply logcial equivalences to simplify each sub-statement
+ func localSimplify(on value: any Statement) {
+    if let complxValue: ComplexStatement = value as? ComplexStatement {
+        do {
+
+        } catch {
+            
+        }
+    } else {
+        return
+    }
+ }

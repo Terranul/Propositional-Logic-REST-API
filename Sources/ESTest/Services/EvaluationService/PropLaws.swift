@@ -24,14 +24,37 @@ func distribute(_ lhs: any Statement, over rhs: ComplexStatement, op: any Operat
 //reversal of distribute
 //((a ^ b) v (a ^ c)) -> a ^ (b v c)
 func extract(lhs: ComplexStatement, rhs: ComplexStatement, op: any Operator) throws -> ComplexStatement {
-    // we must first identify the common element, meaning we must do 4 checks
-    if (lhs.lhs.isEqual(to: rhs.lhs)) {
-        let newLhs: any Statement = lhs.lhs.copy()
-        
+    // we must first identify the common element, meaning we must do 2 checks
+    if (lhs.op.getStringRepresentation() == rhs.op.getStringRepresentation()) {
+        throw StatementError.InvalidOperation("Unable to perform extraction as the inner rhs and lhs variables are not consistent")
     }
+    // towards my commitment to the mirage of existential epiphanies that shrouds humanity's true global detachment
+    // if there is a leading operator on the rhs or lhs we'll bring the inwards first.
+    lhs.simplifyLop()
+    rhs.simplifyLop()
+    if (lhs.lhs.isEqual(to: rhs.lhs) || lhs.lhs.isEqual(to: rhs.rhs)) {
+        // ((a ^ b) v (a ^ c)) -> a ^ (b v c) or ((a ^ b) v (c ^ a)) -> a ^ (b v c)
+        let newA: any Statement = lhs.lhs.copy()
+        let newB: any Statement = lhs.rhs.copy()
+        let newC: any Statement = rhs.rhs.copy()
+        return ComplexStatement(lhs: newA, 
+                                rhs: ComplexStatement(lhs: newB, rhs: newC, op: op, leadingOp: DefaultLeadingOperator()),
+                                op: lhs.op, 
+                                leadingOp: DefaultLeadingOperator())
+    } else if (lhs.rhs.isEqual(to: rhs.lhs) || lhs.rhs.isEqual(to: rhs.rhs)) {
+        // ((a ^ b) v (b ^ c)) -> b ^ (a v c) or ((a ^ b) v (c ^ b)) -> b ^ (a v c)
+        let newA: any Statement = lhs.lhs.copy()
+        let newB: any Statement = lhs.rhs.copy()
+        let newC: any Statement = rhs.rhs.copy()
+        return ComplexStatement(lhs: newB, 
+                                rhs: ComplexStatement(lhs: newA, rhs: newC, op: op, leadingOp: DefaultLeadingOperator()),
+                                op: lhs.op, 
+                                leadingOp: DefaultLeadingOperator())
+    } else {
+        throw StatementError.InvalidOperation("No duplicate variables between lhs and rhs to apply extraction on")
+    }
+
 }
-
-
 
 func absorption(for statement: ComplexStatement) throws -> any Statement{
      // check both sides
@@ -53,3 +76,4 @@ private func isValidAbsorption(lhs: any Statement, rhs: ComplexStatement, op: an
             // such a pain to get equal to look nice here so I'll just do this for now
             lhs.getStatement() == rhs.lhs.getStatement()    
 }
+

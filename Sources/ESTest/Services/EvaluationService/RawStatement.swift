@@ -1,6 +1,5 @@
 class RawStatement: Statement {
 
-
     var variable: Variable
     var leadingOp: any LeadingOperator
 
@@ -35,6 +34,12 @@ class RawStatement: Statement {
         throw EvalError.UndefinedVariable(variable: variable)
       }
       return leadingOp.applyOperation(value: varEval)
+    }
+
+    func simplifyLop() {}
+
+    func isEqual(to statement: any Statement) -> Bool {
+        return self.getStatement() == statement.getStatement()
     }
 
     func getStatement() -> String {

@@ -110,6 +110,21 @@ class ComplexStatement: Statement {
         self.leadingOp = lop
     }
 
+    func simplifyLop() {
+        let refinedStatement: any Statement = self.leadingOp.pushInward(lhs: &lhs, rhs: &rhs, op: self.op)
+        if let complxSelf = refinedStatement as? ComplexStatement {
+            self.overwrite(value: complxSelf)
+        } else {
+            // return without doing anything
+            // TODO: figure out what to do here
+        }
+    }
+
+     func isEqual(to statement: any Statement) -> Bool {
+        return self.getStatement() == statement.getStatement()
+    }
+
+
     static func == (lhs: ComplexStatement, rhs: ComplexStatement) -> Bool {
         return lhs.getStatement() == rhs.getStatement()
     }
