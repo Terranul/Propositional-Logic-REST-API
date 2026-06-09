@@ -8,10 +8,26 @@ protocol Operator {
     func negateOperator(lhs: any Statement, rhs: any Statement) -> ComplexStatement
 
     func getPrimitiveRepresentation(lhs: any Statement, rhs: any Statement) -> ComplexStatement
+
+    // turns the operator in value into the Self type. May use negations to make it work out
+    func coerce(on value: ComplexStatement) throws -> ComplexStatement
     
 }
 
 class AndOperator: Operator {
+
+    func coerce(on value: ComplexStatement) throws -> ComplexStatement {
+        value.simplifyLop()
+        let primValue: ComplexStatement = value.op.getPrimitiveRepresentation(lhs: value.lhs, rhs: value.rhs)
+        // if the primValue is an Or, we negate, otherwise leave the same
+        if (primValue.op is OrOperator) {
+            primValue.negate()
+            primValue.simplifyLop()
+            primValue.negate()
+        }
+        return primValue
+    }
+
 
     func getPrimitiveRepresentation(lhs: any Statement, rhs: any Statement) -> ComplexStatement {
         return ComplexStatement(lhs: lhs, rhs: rhs, op: AndOperator(), leadingOp: DefaultLeadingOperator())
@@ -35,6 +51,19 @@ class AndOperator: Operator {
 }
 
 class OrOperator: Operator {
+
+    func coerce(on value: ComplexStatement) throws -> ComplexStatement {
+        value.simplifyLop()
+        let primValue: ComplexStatement = value.op.getPrimitiveRepresentation(lhs: value.lhs, rhs: value.rhs)
+        // if the primValue is an And, we negate, otherwise leave the same
+        if (primValue.op is AndOperator) {
+            primValue.negate()
+            primValue.simplifyLop()
+            primValue.negate()
+        }
+        return primValue
+    }
+
 
     func getPrimitiveRepresentation(lhs: any Statement, rhs: any Statement) -> ComplexStatement {
         return ComplexStatement(lhs: lhs, rhs: rhs, op: OrOperator(), leadingOp: DefaultLeadingOperator())
@@ -91,6 +120,21 @@ class XOROperator: Operator {
 }
 
 class BICOperator: Operator {
+
+    // (A op B) op (A op B)
+    func coerce(on value: ComplexStatement) throws -> ComplexStatement {
+        
+
+
+        if let complxLhs: ComplexStatement = value.lhs as? ComplexStatement {
+            if let complexRhs: ComplexStatement = value.rhs as? ComplexStatement {
+                if (complxLhs == complxLhs.localCopy().negate().self) {
+
+                }
+            }
+        }
+    }
+
 
     func negateOperator(lhs: any Statement, rhs: any Statement) -> ComplexStatement {
         let primitive: ComplexStatement = getPrimitiveRepresentation(lhs: lhs, rhs: rhs)

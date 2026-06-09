@@ -5,6 +5,7 @@ class ComplexStatement: Statement {
     var op: any Operator
     var leadingOp: any LeadingOperator
     var variables: Set<Variable>
+    var outcomeMatch: BitFieldSequence
     
     func evaluate(resolutionMap: [Character: Bool]) throws-> Bool {
         let lhsResult = try lhs.evaluate(resolutionMap: resolutionMap)
@@ -19,6 +20,30 @@ class ComplexStatement: Statement {
         self.op = op
         self.leadingOp = leadingOp
         self.variables = lhs.getVariables().union(rhs.getVariables())
+    }
+
+    private func createBitFieldSequence(lhs: BitFieldSequence, rhs: BitFieldSequence) -> BitFieldSequence {
+        // filter out true and false slash leading operators
+        if (self.leadingOp is TrueSlashOperator) {
+            return BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
+        } else if (self.leadingOp is FalseSlashOperator) {
+            return BitFieldSequence(value: BitFieldSequence.getAlwaysFalseBitField())
+        }
+        // if we don't have a primitive operator (OR or AND), we must simplify it first
+        var sequence: BitFieldSequence? = nil
+        if (self.op is AndOperator) {
+            sequence = lhs.intersect(with: rhs)
+        } else if (self.op is OrOperator) {
+            sequence = lhs.union(with: rhs)
+        } else {
+            // in fact, getPrimitiveRepresentation will have called init already, so we can leave as is
+            sequence = self.op.getPrimitiveRepresentation(lhs: self.lhs, rhs: self.rhs).outcomeMatch
+        }
+        // now deal with not operators
+        if (self.leadingOp is NotOperator) {
+            sequence!.negate()
+        }
+        return sequence!
     }
 
     // init from a list of components with a shared operator
@@ -83,6 +108,10 @@ class ComplexStatement: Statement {
         op: op,
         leadingOp: leadingOp
     )
+    }
+
+    func localCopy() -> ComplexStatement {
+        return ComplexStatement(lhs: self.lhs, rhs: self.rhs, op: self.op, leadingOp: self.leadingOp)
     }
 
     func getStatement() -> String {

@@ -51,14 +51,32 @@ func convertToStatement(outcome: BitField, variables: [Variable]) -> any Stateme
  }
 
 // post-order traversal of the logic tree that will try to apply logcial equivalences to simplify each sub-statement
- func localSimplify(on value: any Statement) {
+ func localSimplify(on value: any Statement) -> any Statement {
     if let complxValue: ComplexStatement = value as? ComplexStatement {
+        guard let result = value as? ComplexStatement else {
+            return value
+        }
         do {
-
+            let 
         } catch {
-            
+            do {
+
+            } catch {
+
+            }
         }
     } else {
         return
     }
+ }
+
+ private func coercionSimplification(on value: ComplexStatement) -> ComplexStatement {
+    // we'll only take these two becuase they are the only ones to have a chance at direct simplification
+    let opList: [any Operator] = [XOROperator(), BICOperator()]
+    for op: any Operator in opList {
+        do {
+            return try op.coerce(on: value)
+        } catch {}
+    }
+    return value
  }

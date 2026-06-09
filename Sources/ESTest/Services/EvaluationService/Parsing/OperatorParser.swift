@@ -50,4 +50,8 @@ struct OperatorParser {
             return value
         }
     }
+
+    public func getOperators() -> [any Operator] {
+        return [OrOperator(), AndOperator(), XOROperator(), BICOperator(), NANDOperator(), IMPOperator()]
+    }
 }

@@ -26,6 +26,11 @@ struct BitField: Hashable {
         self.value = value
     }
 
+    // overflow opportunity, but luckily only I will be touching this init
+    public init(statementBits: Int32, flagBits: Int32) {
+        self.value = statementBits + (flagBits << BitField.FLAG_BITS_BEGIN_INDEX)
+    }
+
     // good compiler
     mutating func append(position: Int) {
         value += 1 << position
@@ -120,7 +125,17 @@ struct BitField: Hashable {
         if(xor == 0) {return true}
         return (xor & self.value) > 0
     }
+
+    func negate() -> BitField {
+        // flipping the statement bits will negate
+        // we must make sure not to flip the star and flag bits though
+        let flippedStatementBits: Int32 = ~self.removeFlagBits()
+        // now we can make all the flag bits zero and then re-add them back
+        let newStatementBits = (~self.extractFlagBits() ^ flippedStatementBits) + self.extractFlagBits()
+        return BitField(from: newStatementBits + (self.extractFlagBits() << BitField.FLAG_BITS_BEGIN_INDEX))
+    }
 }
+
 
 func getEssentialImplicants(value: any Statement) throws -> ([Character], Set<BitField>) {
     var possibleOutputs: [[Character : Bool]] = EvalBridge().getAllResults(variables: Array(value.getVariables()))

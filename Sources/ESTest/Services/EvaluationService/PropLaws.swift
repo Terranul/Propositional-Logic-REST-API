@@ -77,3 +77,7 @@ private func isValidAbsorption(lhs: any Statement, rhs: ComplexStatement, op: an
             lhs.getStatement() == rhs.lhs.getStatement()    
 }
 
+func coerceOperator(_ op: any Operator, on value: ComplexStatement) throws -> ComplexStatement {
+    
+}
+

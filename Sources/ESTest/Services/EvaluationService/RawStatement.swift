@@ -2,10 +2,24 @@ class RawStatement: Statement {
 
     var variable: Variable
     var leadingOp: any LeadingOperator
+    var outcomeMatch: BitFieldSequence
 
     init(variable: Character, leadingOp: any LeadingOperator) {
         self.variable = variable
         self.leadingOp = leadingOp
+    }
+
+    private func createBitFieldSequence(bitPosition: UInt) -> BitFieldSequence {
+        if (leadingOp is TrueSlashOperator) {
+            return BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
+        } else if (self.leadingOp is FalseSlashOperator) {
+            return BitFieldSequence(value: BitFieldSequence.getAlwaysFalseBitField())
+        }
+        let initialBitSequence: BitFieldSequence = BitFieldSequence(value: BitField(from: 1 << bitPosition))
+        if (leadingOp is NotOperator) {
+            initialBitSequence.negate()
+        }
+        return initialBitSequence
     }
 
     static func == (lhs: RawStatement, rhs: RawStatement) -> Bool {
