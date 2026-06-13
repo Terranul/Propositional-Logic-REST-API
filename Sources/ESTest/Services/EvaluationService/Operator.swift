@@ -89,6 +89,12 @@ class OrOperator: Operator {
 
 class XOROperator: Operator {
 
+    func coerce(on value: ComplexStatement) throws -> ComplexStatement {
+        // todo 
+        return value
+    }
+
+
     func negateOperator(lhs: any Statement, rhs: any Statement) -> ComplexStatement {
         let primitive: ComplexStatement = getPrimitiveRepresentation(lhs: lhs, rhs: rhs)
         primitive.negate()
@@ -123,16 +129,20 @@ class BICOperator: Operator {
 
     // (A op B) op (A op B)
     func coerce(on value: ComplexStatement) throws -> ComplexStatement {
-        
-
-
-        if let complxLhs: ComplexStatement = value.lhs as? ComplexStatement {
+        if let complexLhs: ComplexStatement = value.lhs as? ComplexStatement {
             if let complexRhs: ComplexStatement = value.rhs as? ComplexStatement {
-                if (complxLhs == complxLhs.localCopy().negate().self) {
-
+                let rightCopyNgt = complexRhs.localCopy()
+                rightCopyNgt.negate()
+                let leftCopyNgt = complexLhs.localCopy()
+                leftCopyNgt.negate()
+                if (complexLhs == rightCopyNgt) {
+                    return ComplexStatement(lhs: complexLhs.lhs, rhs: complexLhs.rhs, op: BICOperator(), leadingOp: DefaultLeadingOperator())
+                } else if (complexRhs == leftCopyNgt) {
+                    return ComplexStatement(lhs: complexRhs.lhs, rhs: complexRhs.rhs, op: BICOperator(), leadingOp: DefaultLeadingOperator())
                 }
             }
         }
+        throw StatementError.InvalidOperation("Cannot apply biconditional rule to \(value.getStatement())")
     }
 
 
@@ -168,6 +178,11 @@ class BICOperator: Operator {
 }
 
 class IMPOperator: Operator {
+
+    func coerce(on value: ComplexStatement) throws -> ComplexStatement {
+        return value
+    }
+
     func negateOperator(lhs: any Statement, rhs: any Statement) -> ComplexStatement {
         let primitive: ComplexStatement = getPrimitiveRepresentation(lhs: lhs, rhs: rhs)
         primitive.negate()
@@ -194,6 +209,11 @@ class IMPOperator: Operator {
 }
 
 class NANDOperator: Operator {
+
+    func coerce(on value: ComplexStatement) throws -> ComplexStatement {
+        return value
+    }
+
 
     func negateOperator(lhs: any Statement, rhs: any Statement) -> ComplexStatement {
         return ComplexStatement(lhs: lhs, rhs: rhs, op: AndOperator(), leadingOp: DefaultLeadingOperator())

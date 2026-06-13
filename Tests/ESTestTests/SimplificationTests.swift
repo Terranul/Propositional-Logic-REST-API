@@ -111,6 +111,24 @@ struct SimpTests {
         #expect(simplified.getStatement() == "a")
         result = try StatementParser().parseStatement(value: "(((avb)^(av~b))^(bvc))")
         simplified = try simplify(result)
-        #expect(simplified.getStatement() == "(a^(bvc))")
+        #expect(simplified.getStatement() == "(a ^ (b v c))")
+        // result = try StatementParser().parseStatement(value: "((a>b)^(~a>c))")
+        // simplified = try simplify(result)
+        // #expect(simplified.getStatement() == "(a ^ (b v c))")
+        result = try StatementParser().parseStatement(value: "((~c>d)|c)")
+        simplified = try simplify(result)
+        #expect(simplified.getStatement() == "(a ^ (b v c))")
+    }
+
+    // testing on local simplify
+    @Test func testLocalSimplify() async throws {
+        var result = try StatementParser().parseStatement(value: "(a^(bva))")
+        var simplfiied = localSimplify(on: result)
+        #expect(localSimplify(on: result).getStatement() == "a")
+        result = try StatementParser().parseStatement(value: "((a^b)v(c^a))")
+        simplfiied = localSimplify(on: result)
+        #expect(localSimplify(on: result).getStatement() == "(a ^ (b v c))")
+        
     }
 }
+

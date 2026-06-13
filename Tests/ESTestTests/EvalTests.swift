@@ -46,3 +46,48 @@ import Testing
     let complexStatement = ComplexStatement(components: components, op: OrOperator())
     #expect(complexStatement.getStatement() == "(~a v (~b v c))")
 }
+
+// testing BitFieldSequence below here
+
+@Suite("BitFieldSequence Tests")
+struct BSTests {
+
+
+
+    @Test func testUnion() async throws {
+        let a = BitField(from: [true, false, true])
+        let b = BitField(from: [true, false, false])
+        let c = BitField(from: [true, true, false])
+        let sequence = BitFieldSequence(value: a)
+        let abUnion = sequence.union(with: BitFieldSequence(value: b))
+        #expect(abUnion.getDebugDescription() == "00000000000000000000000000000101|00000000000000000000000000000100")
+        let abcUnion = abUnion.union(with: BitFieldSequence(value: c))
+        #expect(abcUnion.getDebugDescription() == "00000000000000000000000000000101|00000000000000000000000000000100|00000000000000000000000000000110")
+    }
+
+    @Test func testMerge() async throws {
+        // variable naming convention: s = "star", z = "zero", o = "one"
+        let ssz = createBitField(value: "00000000000001100000000000000110")
+        let szz = createBitField(value: "00000000000001000000000000000100")
+        var result = BitFieldSequence.merge(ssz, with: szz)
+        #expect(result.getStatementBits() == "00000000000001000000000000000100")
+        let oss = createBitField(value: "00000000000000110000000000000111")
+        let oos = createBitField(value: "00000000000000010000000000000111")
+        let zos = createBitField(value: "00000000000000010000000000000011")
+        result = BitFieldSequence.merge(oss, with: oos)
+        #expect(result.getStatementBits() == "00000000000000010000000000000111")
+        let soo = createBitField(value: "00000000000001000000000000000111")
+        result = BitFieldSequence.merge(soo, with: zos)
+        #expect(result.getStatementBits() == "00000000000000000000000000000011")
+    }
+
+   @Test func testIntersect() async throws {
+        let a = BitField(from: [true, false, true])
+        let b = BitField(from: [true, false, false])
+        let c = createBitField(value: "00000000000000110000000000000111") // 1**
+        let sequence = BitFieldSequence(value: a)
+        let abUnion = sequence.union(with: BitFieldSequence(value: b))
+        let abUnionIntersectC = abUnion.intersect(with: BitFieldSequence(value: c))
+        #expect(abUnionIntersectC.getDebugDescription() == "00000000000000000000000000000101|00000000000000000000000000000100")
+   }
+}

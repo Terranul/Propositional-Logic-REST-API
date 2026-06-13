@@ -5,7 +5,8 @@ The file is also responsible for applying extra simplifcations that fit the prop
 
 func simplify(_ statement: any Statement) throws -> any Statement{
     let (variables, outcomes): ([Character], Set<BitField>) = try getEssentialImplicants(value: statement)
-    return convertToCNF(outcomes: outcomes, variables: variables)
+    let simplifiedStat = convertToCNF(outcomes: outcomes, variables: variables)
+    return localSimplify(on: simplifiedStat)
 }
 
 func convertToCNF(outcomes: [[Character: Bool]]) -> any Statement {
@@ -52,22 +53,28 @@ func convertToStatement(outcome: BitField, variables: [Variable]) -> any Stateme
 
 // post-order traversal of the logic tree that will try to apply logcial equivalences to simplify each sub-statement
  func localSimplify(on value: any Statement) -> any Statement {
-    if let complxValue: ComplexStatement = value as? ComplexStatement {
-        guard let result = value as? ComplexStatement else {
-            return value
+    // to do extraction and absorption, we need to have nested complex statements
+    // bit clunky to verify, but whatever
+    // extraction and absorption only works on primitive operators, so we will prioritize this
+    // deal with the leading operator first by bringing it inwards
+    value.simplifyLop()
+    if let value: ComplexStatement = value as? ComplexStatement {
+        let lhsSimplified: any Statement = localSimplify(on: value.lhs)
+        let rhsSimplified: any Statement = localSimplify(on: value.rhs)
+        let simplifiedValue: ComplexStatement = ComplexStatement(lhs: lhsSimplified, rhs: rhsSimplified, op: value.op, leadingOp: value.leadingOp)
+        if let valueLhs: ComplexStatement = simplifiedValue.lhs as? ComplexStatement, let valueRhs = value.rhs as? ComplexStatement {
+            do {
+                return try extract(lhs: valueLhs, rhs: valueRhs, op: value.op)
+            } catch {}
         }
         do {
-            let 
+            return try absorption(for: simplifiedValue)
         } catch {
-            do {
-
-            } catch {
-
-            }
+            return coercionSimplification(on: value)
         }
-    } else {
-        return
     }
+    // we have a raw statement, so no simplfication is required
+    return value
  }
 
  private func coercionSimplification(on value: ComplexStatement) -> ComplexStatement {

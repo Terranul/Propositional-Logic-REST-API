@@ -24,13 +24,13 @@ class BitFieldSequence  {
     }
 
     func intersect(with value: BitFieldSequence) -> BitFieldSequence {
-        return BitFieldSequence(sequence: Set((value.getSequence().map { field in 
-            var newValue = field
-            for selfField in self.sequence {
-                newValue = merge(newValue, with: selfField)
-            }
-            return newValue
-        })))
+        var newSequence = Set<BitField>(value.getSequence())
+        for curValue in self.sequence {
+            newSequence = Set(newSequence.map() { foreignValue in
+                return BitFieldSequence.merge(curValue, with: foreignValue)
+            })
+        }
+        return BitFieldSequence(sequence: newSequence)
     }
 
     func negate() {
@@ -47,9 +47,19 @@ class BitFieldSequence  {
         return BitField(from: -1)
     }
 
+    func evaluate(outcome: [Bool]) -> Bool {
+        let bitFieldOutcome: BitField = BitField(from: outcome)
+        for value in sequence {
+            if (value.matches(with: bitFieldOutcome)) {
+                return true
+            }
+        }
+        return false
+    }
+
     // in the future should probably incorporated into BitField, but for now, it is better placed here becuase the logic
     // doesn't align with the original bitfield idea
-    func merge(_ valueA: BitField, with valueB: BitField) -> BitField {
+    static func merge(_ valueA: BitField, with valueB: BitField) -> BitField {
         // we want to first check for the differences in the statement with an xor, 
         let xor = valueA.removeFlagBits() ^ valueB.removeFlagBits()
         // the differences must line of with one of the flags
@@ -58,12 +68,20 @@ class BitFieldSequence  {
         if (Aintersection | Bintersection == xor) {
             // valid merge
             let zeroesB: Int32 = ~valueB.removeFlagBits() & Aintersection
-            let newStatementBits: Int32 = valueA.removeFlagBits() | zeroesB
+            let newStatementBits: Int32 = valueA.removeFlagBits() & ~zeroesB
             // deal with the flag  bits now
-            let newFlagBits: Int32 = ~zeroesB & valueA.extractFlagBits()
+            let newFlagBits: Int32 = valueB.extractFlagBits() & valueA.extractFlagBits()
             return BitField(statementBits: newStatementBits, flagBits: newFlagBits)
         }
         return BitFieldSequence.getAlwaysFalseBitField()
+    }
+
+    func getDebugDescription() -> String {
+        let stringSequence: String =  sequence.reduce("") { partial, cur in
+            // we neeed the | (OR) partition between statements, so we'll put it after and remove it for the last one
+            return partial + cur.getStatementBits() + "|"
+        }
+        return String(stringSequence.dropLast())
     }
 
 }

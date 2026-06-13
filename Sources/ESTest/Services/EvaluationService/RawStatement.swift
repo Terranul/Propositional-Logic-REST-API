@@ -2,7 +2,7 @@ class RawStatement: Statement {
 
     var variable: Variable
     var leadingOp: any LeadingOperator
-    var outcomeMatch: BitFieldSequence
+    ///var outcomeMatch: BitFieldSequence
 
     init(variable: Character, leadingOp: any LeadingOperator) {
         self.variable = variable
