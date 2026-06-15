@@ -1,3 +1,5 @@
+import OrderedCollections
+
 class BitFieldSequence  {
 
     // a bitfield has all flag bits being one, then you can say that the outcome will always be true.
@@ -24,19 +26,44 @@ class BitFieldSequence  {
     }
 
     func intersect(with value: BitFieldSequence) -> BitFieldSequence {
-        var newSequence = Set<BitField>(value.getSequence())
+        // like factoring out terms (a + b)(c + d) = ac + ad + bc + bd
+        var newSequence = Set<BitField>()
         for curValue in self.sequence {
-            newSequence = Set(newSequence.map() { foreignValue in
-                return BitFieldSequence.merge(curValue, with: foreignValue)
-            })
+            for newValue in value.getSequence() {
+                newSequence.insert(BitFieldSequence.merge(curValue, with: newValue))
+            }
         }
         return BitFieldSequence(sequence: newSequence)
     }
 
-    func negate() {
-        self.sequence = Set(self.sequence.map { bitfield in
+    // makes room for additional variables by shifting positions over
+    // throws StatementError.InvalidOperation when you exceed the 15 variable max limit
+    func addVariables(variableCount: Int) throws {
+        // we don't know the total amount of variables since each statement may vary; we must check every time
+        var newSequence = Set<BitField>()
+        for curValue in self.sequence {
+            if ((Int64(curValue.extractStatementBits()) << variableCount) >= Int64(1 << 16)) {
+                throw StatementError.InvalidOperation("Too many variables present (max 15).")
+            } else {
+                newSequence.insert(BitField(from: curValue.value << variableCount))
+            }
+        }
+    }
+
+    func arrageVariables(newSequence: OrderedSet<Variable>, curSequence: OrderedSet<Variable>)
+        throws
+    {
+        try self.addVariables(variableCount: abs(newSequence.count - curSequence.count))
+        // game plan bitches: we merge the two sequences into a master key.
+        // once we do, we iterate through the master key, referencing it's variable with the index in the newSequence
+        let masterSequence: OrderedSet<Variable> = newSequence.union(curSequence)
+        //
+    }
+
+    func negate() -> BitFieldSequence{
+        return BitFieldSequence(sequence: Set(self.sequence.map { bitfield in
             return bitfield.negate()
-        })
+        }))
     }
 
     static func getAlwaysFalseBitField() -> BitField {
@@ -82,6 +109,12 @@ class BitFieldSequence  {
             return partial + cur.getStatementBits() + "|"
         }
         return String(stringSequence.dropLast())
+    }
+
+    func map(_ operation: (BitField) -> BitField) {
+        self.sequence = Set(self.sequence.map() { bitfield in
+            return operation(bitfield)
+        })
     }
 
 }

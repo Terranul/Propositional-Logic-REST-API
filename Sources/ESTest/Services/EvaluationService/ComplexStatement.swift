@@ -1,11 +1,13 @@
+import OrderedCollections
+
 class ComplexStatement: Statement {
 
     var rhs: any Statement
     var lhs: any Statement
     var op: any Operator
     var leadingOp: any LeadingOperator
-    var variables: Set<Variable>
-    //var outcomeMatch: BitFieldSequence
+    var variables: OrderedSet<Variable>
+    var outcomeMatch: BitFieldSequence
     
     func evaluate(resolutionMap: [Character: Bool]) throws-> Bool {
         let lhsResult = try lhs.evaluate(resolutionMap: resolutionMap)
@@ -20,31 +22,58 @@ class ComplexStatement: Statement {
         self.op = op
         self.leadingOp = leadingOp
         self.variables = lhs.getVariables().union(rhs.getVariables())
+        self.outcomeMatch = BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
+        self.outcomeMatch = createBitFieldSequence()
+        // include the lop in the outcomeMatch
+        self.outcomeMatch = self.leadingOp.getOutcome(self.outcomeMatch)
     }
 
-    // private func createBitFieldSequence(lhs: BitFieldSequence, rhs: BitFieldSequence) -> BitFieldSequence {
-    //     // filter out true and false slash leading operators
-    //     if (self.leadingOp is TrueSlashOperator) {
-    //         return BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
-    //     } else if (self.leadingOp is FalseSlashOperator) {
-    //         return BitFieldSequence(value: BitFieldSequence.getAlwaysFalseBitField())
-    //     }
-    //     // if we don't have a primitive operator (OR or AND), we must simplify it first
-    //     var sequence: BitFieldSequence? = nil
-    //     if (self.op is AndOperator) {
-    //         sequence = lhs.intersect(with: rhs)
-    //     } else if (self.op is OrOperator) {
-    //         sequence = lhs.union(with: rhs)
-    //     } else {
-    //         // in fact, getPrimitiveRepresentation will have called init already, so we can leave as is
-    //         sequence = self.op.getPrimitiveRepresentation(lhs: self.lhs, rhs: self.rhs).outcomeMatch
-    //     }
-    //     // now deal with not operators
-    //     if (self.leadingOp is NotOperator) {
-    //         sequence!.negate()
-    //     }
-    //     return sequence!
-    // }
+    // everything will have been init, so it is fine to use self properties here to construct the outcomeMatch
+    private func createBitFieldSequence() -> BitFieldSequence {
+        // add space akin to the number of distinct variables in rhs
+        self.arrangeVariables(lhs: self.lhs, rhs: self.rhs)
+        self.simplifyLop()
+        let lhsOutcome: BitFieldSequence = self.lhs.getBitFieldSequence()
+        let rhsOutcome: BitFieldSequence = self.rhs.getBitFieldSequence()
+        if (self.op is OrOperator) {
+            return lhsOutcome.union(with: rhsOutcome)
+        } else if (self.op is AndOperator) {
+            return lhsOutcome.intersect(with: rhsOutcome)
+        } else {
+            return self.op.getPrimitiveRepresentation(lhs: self.lhs, rhs: self.rhs).outcomeMatch
+        }
+    }
+
+    // modifies both the incoming study and self, which is a bit wonky but whatever
+    private func arrangeVariables(lhs: any Statement, rhs: any Statement) {
+        let lhsOutcome: BitFieldSequence = lhs.getBitFieldSequence()
+        let lhsVariables: OrderedSet<Variable> = lhs.getVariables()
+        let rhsOutcome: BitFieldSequence = rhs.getBitFieldSequence()
+        let rhsVariables: OrderedSet<Variable> = rhs.getVariables()
+        let masterSequence: OrderedSet<Variable> = rhsVariables.union(lhsVariables)
+        // we'll do the study BitField first, and then ourselves after
+        rhsOutcome.map() { bitfield in
+            return rearrangeStudyBitField(
+                bitfield: bitfield, studyVariables: rhsVariables, masterSequence: masterSequence)
+        }
+        lhsOutcome.map({ bitfield in
+            return rearrangeStudyBitField(
+                bitfield: bitfield, studyVariables: lhsVariables, masterSequence: masterSequence)
+        })
+    }
+
+    private func rearrangeStudyBitField(
+        bitfield: BitField, studyVariables: OrderedSet<Variable>,
+        masterSequence: OrderedSet<Variable>
+    ) -> BitField {
+        var newBitField: BitField = BitField(from: bitfield.value)
+        for i in 0..<studyVariables.count {
+            let targetVariable: Variable = studyVariables[i]
+            let newPosition = masterSequence.firstIndex(of: targetVariable)!
+            newBitField.move(from: i, to: newPosition)
+        }
+        return newBitField
+    }
 
     // init from a list of components with a shared operator
     // meant to replicate (a ^ b ^ c ^ d)
@@ -59,6 +88,9 @@ class ComplexStatement: Statement {
         self.op = op
         self.leadingOp = DefaultLeadingOperator()
         self.variables = lhs.getVariables().intersection(rhs.getVariables())
+        self.outcomeMatch = BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
+        self.outcomeMatch = createBitFieldSequence()
+        self.outcomeMatch = self.leadingOp.getOutcome(self.outcomeMatch)
     }
 
     private static func buildStatement(components: [any Statement], op: any Operator, index: Int)
@@ -133,6 +165,7 @@ class ComplexStatement: Statement {
 
     func negate() {
         self.leadingOp = leadingOp.negate()
+        self.outcomeMatch = outcomeMatch.negate()
     }
 
     func setLop(lop: any LeadingOperator) {
@@ -160,7 +193,7 @@ class ComplexStatement: Statement {
 
     // getters
 
-    func getVariables() -> Set<Variable> {
+    func getVariables() -> OrderedSet<Variable> {
         return self.variables
     }   
 
@@ -174,5 +207,9 @@ class ComplexStatement: Statement {
         self.rhs = value.rhs
         self.op = value.op
     }
+
+    func getBitFieldSequence() -> BitFieldSequence {
+        return self.outcomeMatch
+    }   
 
 }

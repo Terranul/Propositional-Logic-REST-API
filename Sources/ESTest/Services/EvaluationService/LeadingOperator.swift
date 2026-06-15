@@ -14,6 +14,8 @@ protocol LeadingOperator {
     // ex. NotOperator.apply(to: TrueSlashOperator()) -> FalseSlashOperator()
     func apply(to lop: any LeadingOperator) -> any LeadingOperator
 
+    func getOutcome(_ value: BitFieldSequence) -> BitFieldSequence
+
 }
 
 extension LeadingOperator {
@@ -24,6 +26,11 @@ extension LeadingOperator {
 }
 
 class NotOperator: LeadingOperator {
+
+    func getOutcome(_ value: BitFieldSequence) -> BitFieldSequence {
+        return value.negate()
+    }
+
 
     func apply(to lop: any LeadingOperator) -> any LeadingOperator {
         return lop.negate()
@@ -55,6 +62,11 @@ class NotOperator: LeadingOperator {
 
 class FalseSlashOperator: LeadingOperator {
 
+    func getOutcome(_ value: BitFieldSequence) -> BitFieldSequence {
+        return BitFieldSequence(value: BitFieldSequence.getAlwaysFalseBitField())
+    }
+
+
     func apply(to lop: any LeadingOperator) -> any LeadingOperator {
         return FalseSlashOperator()
     }
@@ -84,6 +96,11 @@ class FalseSlashOperator: LeadingOperator {
 
 class TrueSlashOperator: LeadingOperator {
 
+    func getOutcome(_ value: BitFieldSequence) -> BitFieldSequence {
+        return BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
+    }
+
+
     func apply(to lop: any LeadingOperator) -> any LeadingOperator {
         return TrueSlashOperator()
     }
@@ -112,6 +129,11 @@ class TrueSlashOperator: LeadingOperator {
 }
 
 class DefaultLeadingOperator: LeadingOperator {
+
+    func getOutcome(_ value: BitFieldSequence) -> BitFieldSequence {
+        return value
+    }
+
 
     func apply(to lop: any LeadingOperator) -> any LeadingOperator {
         return lop
@@ -194,5 +216,9 @@ class ComplexLeadingOperator: LeadingOperator {
             cur = lop.apply(to: cur)
         }
         return cur
+    }
+
+    func getOutcome(_ value: BitFieldSequence) -> BitFieldSequence {
+        return self.resolve().getOutcome(value)
     }
 }

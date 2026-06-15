@@ -127,8 +127,15 @@ struct SimpTests {
         #expect(localSimplify(on: result).getStatement() == "a")
         result = try StatementParser().parseStatement(value: "((a^b)v(c^a))")
         simplfiied = localSimplify(on: result)
-        #expect(localSimplify(on: result).getStatement() == "(a ^ (b v c))")
-        
+        #expect(localSimplify(on: result).getStatement() == "(a ^ (b v c))")  
+    }
+
+    @Test func testBitFieldMove() async throws {
+        var input = createBitField(value: "00000000000000100000000000000011")
+        input.move(from: 0, to: 2)
+        #expect(input.getStatementBits() == "00000000000000100000000000000110")
+        input.move(from: 1, to: 3)
+        #expect(input.getStatementBits() == "00000000000010000000000000001100")
     }
 }
 

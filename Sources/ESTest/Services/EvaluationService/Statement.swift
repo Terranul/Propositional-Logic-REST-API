@@ -1,3 +1,5 @@
+import OrderedCollections
+
 // A placeholder to make a future transition to a dedicated Variable type easier
 typealias Variable = Character
 
@@ -34,6 +36,8 @@ protocol Statement: AnyObject, Equatable {
     // turns the lop into a DefaultLeadingOperator by pushing any other operators inwards
     func simplifyLop() 
 
+    func getBitFieldSequence() -> BitFieldSequence
+
     static func == (lhs: Self, rhs: Self) -> Bool
 
     // a workaround to the fact == is janky with protocols
@@ -41,7 +45,7 @@ protocol Statement: AnyObject, Equatable {
 
     // getters ________________________________________
 
-    func getVariables() -> Set<Variable>
+    func getVariables() -> OrderedSet<Variable>
 
 
 }

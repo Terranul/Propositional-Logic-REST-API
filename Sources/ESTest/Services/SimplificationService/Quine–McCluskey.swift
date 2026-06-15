@@ -36,6 +36,32 @@ struct BitField: Hashable {
         value += 1 << position
     }
 
+    // adds 0 at given position
+    mutating func delete(position: Int) {
+        self.value &= ~(1 << position)
+    }
+
+    // adds 0 at the from position and overrides any values at the destination
+    // moves the flag and statement bit pair
+    mutating func move(from initPosition: Int, to destination: Int) {
+        let flagInitPosition = BitField.FLAG_BITS_BEGIN_INDEX + initPosition
+        let flagDestination: Int = BitField.FLAG_BITS_BEGIN_INDEX + destination
+        let statementValue = (self.value >> initPosition) & 1
+        let flagValue = (self.value >> flagInitPosition) & 1
+        self.delete(position: initPosition)
+        self.delete(position: flagInitPosition)
+        if (statementValue == 1) {
+            self.append(position: destination)
+        } else {
+            self.delete(position: destination)
+        }
+        if (flagValue == 1) {
+            self.append(position: flagDestination)
+        } else {
+            self.delete(position: flagDestination)
+        }
+    }
+
     // there is currently a pretty critical bug becuase we don't use unsigned Int and we shift left when supporting max (16) variables
     // we would get ones instead of zeroes
     // this is unlikely to happen in my testing, and I'm only ever going to be using this so...
