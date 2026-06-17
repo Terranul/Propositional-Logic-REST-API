@@ -50,16 +50,6 @@ class BitFieldSequence  {
         }
     }
 
-    func arrageVariables(newSequence: OrderedSet<Variable>, curSequence: OrderedSet<Variable>)
-        throws
-    {
-        try self.addVariables(variableCount: abs(newSequence.count - curSequence.count))
-        // game plan bitches: we merge the two sequences into a master key.
-        // once we do, we iterate through the master key, referencing it's variable with the index in the newSequence
-        let masterSequence: OrderedSet<Variable> = newSequence.union(curSequence)
-        //
-    }
-
     func negate() -> BitFieldSequence{
         return BitFieldSequence(sequence: Set(self.sequence.map { bitfield in
             return bitfield.negate()
@@ -116,5 +106,4 @@ class BitFieldSequence  {
             return operation(bitfield)
         })
     }
-
 }

@@ -1,4 +1,5 @@
 import Testing
+import OrderedCollections
 @testable import ESTest
 
 @Test func testEvalComplexStatement() async throws {
@@ -36,6 +37,21 @@ import Testing
         #expect(statement.getStatement() == "/a")
         #expect(try statement.evaluate(resolutionMap: ["a": true, "b": false]))
         #expect(try statement.evaluate(resolutionMap: ["a": true, "b": true]))
+    } catch {
+        #expect(Bool(false))
+    }
+}
+
+// tests for the new evaluation below
+
+@Test func generalEvalTesting() async throws {
+    let parser = StatementParser()
+    let value = "((a^b)v(a^c))"
+    do {
+        let base = try parser.parseStatement(value: value)
+        let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": false])
+         #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": false]))
+         #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": false]))
     } catch {
         #expect(Bool(false))
     }
@@ -90,4 +106,20 @@ struct BSTests {
         let abUnionIntersectC = abUnion.intersect(with: BitFieldSequence(value: c))
         #expect(abUnionIntersectC.getDebugDescription() == "00000000000000000000000000000101|00000000000000000000000000000100")
    }
+
+   @Test func testArrangeVariables() async throws {
+        let a = RawStatement(variable: "a", leadingOp: DefaultLeadingOperator())
+        let b = RawStatement(variable: "b", leadingOp: DefaultLeadingOperator())
+        ComplexStatement.arrangeVariables(lhs: a, rhs: b)
+        #expect(a.getBitFieldSequence().getDebugDescription() == "00000000000000000000000000000010")
+        #expect(b.getBitFieldSequence().getDebugDescription() == "00000000000000000000000000000001")
+   }   
+
+   @Test func testRearangeVariables() async throws {
+        let bit = createBitField(value: "00000000000000000000000000000011")
+        let studyVariables: OrderedSet<Variable> = OrderedSet(["a", "b"])
+        let masterSet: OrderedSet<Variable> = OrderedSet(["a", "c", "b", "d"])
+        let result = ComplexStatement.rearrangeStudyBitField(bitfield: bit, studyVariables: studyVariables, masterSequence: masterSet)
+        #expect(result.getStatementBits() == "00000000000000000000000000000101")
+   } 
 }

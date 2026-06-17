@@ -16,6 +16,19 @@ class ComplexStatement: Statement {
         return leadingOp.applyOperation(value: result)
     }
 
+    func evaluateOutcomeMatch(resolutionMap: [Character : Bool]) throws -> Bool {
+        // we must first align to a list that matches the one in our variables
+        var refinedOutcomes: [Bool] = []
+        for variable in variables {
+            if let outcome = resolutionMap[variable] {
+                refinedOutcomes.append(outcome)
+            } else {
+                throw EvalError.UndefinedVariable(variable: variable)
+            }
+        }
+        return outcomeMatch.evaluate(outcome: refinedOutcomes)
+    }
+
     init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator) {
         self.rhs = rhs
         self.lhs = lhs
@@ -31,8 +44,7 @@ class ComplexStatement: Statement {
     // everything will have been init, so it is fine to use self properties here to construct the outcomeMatch
     private func createBitFieldSequence() -> BitFieldSequence {
         // add space akin to the number of distinct variables in rhs
-        self.arrangeVariables(lhs: self.lhs, rhs: self.rhs)
-        self.simplifyLop()
+        ComplexStatement.arrangeVariables(lhs: self.lhs, rhs: self.rhs)
         let lhsOutcome: BitFieldSequence = self.lhs.getBitFieldSequence()
         let rhsOutcome: BitFieldSequence = self.rhs.getBitFieldSequence()
         if (self.op is OrOperator) {
@@ -45,7 +57,7 @@ class ComplexStatement: Statement {
     }
 
     // modifies both the incoming study and self, which is a bit wonky but whatever
-    private func arrangeVariables(lhs: any Statement, rhs: any Statement) {
+     static func arrangeVariables(lhs: any Statement, rhs: any Statement) {
         let lhsOutcome: BitFieldSequence = lhs.getBitFieldSequence()
         let lhsVariables: OrderedSet<Variable> = lhs.getVariables()
         let rhsOutcome: BitFieldSequence = rhs.getBitFieldSequence()
@@ -62,7 +74,7 @@ class ComplexStatement: Statement {
         })
     }
 
-    private func rearrangeStudyBitField(
+    static func rearrangeStudyBitField(
         bitfield: BitField, studyVariables: OrderedSet<Variable>,
         masterSequence: OrderedSet<Variable>
     ) -> BitField {

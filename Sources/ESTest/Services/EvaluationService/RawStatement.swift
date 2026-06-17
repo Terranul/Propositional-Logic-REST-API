@@ -1,12 +1,33 @@
+import OrderedCollections
+
 class RawStatement: Statement {
+
 
     var variable: Variable
     var leadingOp: any LeadingOperator
-    ///var outcomeMatch: BitFieldSequence
+    var outcomeMatch: BitFieldSequence
 
     init(variable: Character, leadingOp: any LeadingOperator) {
         self.variable = variable
         self.leadingOp = leadingOp
+        self.outcomeMatch = BitFieldSequence(value: BitField(from: 1))
+        self.outcomeMatch = self.leadingOp.getOutcome(self.outcomeMatch)
+    }
+
+     func getBitFieldSequence() -> BitFieldSequence {
+        return outcomeMatch
+    }
+
+    func evaluateOutcomeMatch(resolutionMap: [Character : Bool]) throws -> Bool {
+        if let outcome = resolutionMap[self.variable] {
+            return self.outcomeMatch.evaluate(outcome: [outcome])
+        } else {
+            throw EvalError.UndefinedVariable(variable: self.variable)
+        }
+    }
+
+    func getVariables() -> OrderedSet<Variable> {
+        return OrderedSet(arrayLiteral: variable)
     }
 
     private func createBitFieldSequence(bitPosition: UInt) -> BitFieldSequence {

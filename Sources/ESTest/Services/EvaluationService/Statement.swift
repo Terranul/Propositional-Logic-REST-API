@@ -43,6 +43,10 @@ protocol Statement: AnyObject, Equatable {
     // a workaround to the fact == is janky with protocols
     func isEqual(to statement: any Statement) -> Bool
 
+    // an identical version of evaluate, except uses a faster evaluation process
+    // to be christened as the new evaluate function in the future
+    func evaluateOutcomeMatch(resolutionMap: [Character: Bool]) throws -> Bool
+
     // getters ________________________________________
 
     func getVariables() -> OrderedSet<Variable>
