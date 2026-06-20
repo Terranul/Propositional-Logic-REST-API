@@ -122,4 +122,8 @@ struct BSTests {
         let result = ComplexStatement.rearrangeStudyBitField(bitfield: bit, studyVariables: studyVariables, masterSequence: masterSet)
         #expect(result.getStatementBits() == "00000000000000000000000000000101")
    } 
+
+   @Test func testCreateBitFieldSequence() async throws {
+        
+   }
 }

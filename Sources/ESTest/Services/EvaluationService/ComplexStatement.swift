@@ -34,7 +34,7 @@ class ComplexStatement: Statement {
         self.lhs = lhs
         self.op = op
         self.leadingOp = leadingOp
-        self.variables = lhs.getVariables().union(rhs.getVariables())
+        self.variables = rhs.getVariables().union(lhs.getVariables())
         self.outcomeMatch = BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
         self.outcomeMatch = createBitFieldSequence()
         // include the lop in the outcomeMatch
@@ -42,11 +42,10 @@ class ComplexStatement: Statement {
     }
 
     // everything will have been init, so it is fine to use self properties here to construct the outcomeMatch
-    private func createBitFieldSequence() -> BitFieldSequence {
+    public func createBitFieldSequence() -> BitFieldSequence {
+        print("hit create sequence")
         // add space akin to the number of distinct variables in rhs
-        ComplexStatement.arrangeVariables(lhs: self.lhs, rhs: self.rhs)
-        let lhsOutcome: BitFieldSequence = self.lhs.getBitFieldSequence()
-        let rhsOutcome: BitFieldSequence = self.rhs.getBitFieldSequence()
+        let (lhsOutcome, rhsOutcome) = ComplexStatement.arrangeVariables(lhs: self.lhs, rhs: self.rhs)
         if (self.op is OrOperator) {
             return lhsOutcome.union(with: rhsOutcome)
         } else if (self.op is AndOperator) {
@@ -57,21 +56,22 @@ class ComplexStatement: Statement {
     }
 
     // modifies both the incoming study and self, which is a bit wonky but whatever
-     static func arrangeVariables(lhs: any Statement, rhs: any Statement) {
-        let lhsOutcome: BitFieldSequence = lhs.getBitFieldSequence()
+     static func arrangeVariables(lhs: any Statement, rhs: any Statement) -> (BitFieldSequence, BitFieldSequence) {
+        let lhsOutcome: BitFieldSequence = lhs.getBitFieldSequence().copy()
         let lhsVariables: OrderedSet<Variable> = lhs.getVariables()
-        let rhsOutcome: BitFieldSequence = rhs.getBitFieldSequence()
+        let rhsOutcome: BitFieldSequence = rhs.getBitFieldSequence().copy()
         let rhsVariables: OrderedSet<Variable> = rhs.getVariables()
         let masterSequence: OrderedSet<Variable> = rhsVariables.union(lhsVariables)
         // we'll do the study BitField first, and then ourselves after
         rhsOutcome.map() { bitfield in
-            return rearrangeStudyBitField(
+            return ComplexStatement.rearrangeStudyBitField(
                 bitfield: bitfield, studyVariables: rhsVariables, masterSequence: masterSequence)
         }
         lhsOutcome.map({ bitfield in
-            return rearrangeStudyBitField(
+            return ComplexStatement.rearrangeStudyBitField(
                 bitfield: bitfield, studyVariables: lhsVariables, masterSequence: masterSequence)
         })
+        return (lhsOutcome, rhsOutcome)
     }
 
     static func rearrangeStudyBitField(

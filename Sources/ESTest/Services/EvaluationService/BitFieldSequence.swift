@@ -67,11 +67,20 @@ class BitFieldSequence  {
     func evaluate(outcome: [Bool]) -> Bool {
         let bitFieldOutcome: BitField = BitField(from: outcome)
         for value in sequence {
-            if (value.matches(with: bitFieldOutcome)) {
+            if (BitFieldSequence.convertToEvalConditions(value).matches(with: bitFieldOutcome)) {
                 return true
             }
         }
         return false
+    }
+
+    func copy() -> BitFieldSequence {
+        return BitFieldSequence(sequence: self.sequence)
+    }
+
+    // an eval bitfield as the leading bits as significant, we must replicate in regular bitfield for the matches algo to work
+    static func convertToEvalConditions(_ bitValue: BitField) -> BitField {
+        return BitField(from: bitValue.value | -1073741824) // 11000000000000000000000000000000
     }
 
     // in the future should probably incorporated into BitField, but for now, it is better placed here becuase the logic

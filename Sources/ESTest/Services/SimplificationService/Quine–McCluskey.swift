@@ -33,7 +33,13 @@ struct BitField: Hashable {
 
     // good compiler
     mutating func append(position: Int) {
-        value += 1 << position
+        self.value |= (1 << position)
+    }
+
+    mutating func appendStar(position: Int) {
+        let flagPosition = BitField.FLAG_BITS_BEGIN_INDEX + position
+        self.append(position: position)
+        self.append(position: flagPosition)
     }
 
     // adds 0 at given position
@@ -44,6 +50,9 @@ struct BitField: Hashable {
     // adds 0 at the from position and overrides any values at the destination
     // moves the flag and statement bit pair
     mutating func move(from initPosition: Int, to destination: Int) {
+        guard initPosition != destination else {
+            return
+        }
         let flagInitPosition = BitField.FLAG_BITS_BEGIN_INDEX + initPosition
         let flagDestination: Int = BitField.FLAG_BITS_BEGIN_INDEX + destination
         let statementValue = (self.value >> initPosition) & 1
@@ -60,6 +69,8 @@ struct BitField: Hashable {
         } else {
             self.delete(position: flagDestination)
         }
+        // now place a star at the old site
+        self.appendStar(position: initPosition)
     }
 
     // there is currently a pretty critical bug becuase we don't use unsigned Int and we shift left when supporting max (16) variables
@@ -146,10 +157,10 @@ struct BitField: Hashable {
     // TODO: fix the above requires later
     func matches(with minterm: BitField) -> Bool {
         // we know they are identical if all 0's, this is better than plain == becuase we can determine where the mismatch is
-        let xor: Int32 = (self.extractStatementBits() ^ minterm.extractStatementBits())
+        let xor: Int32 = (self.removeFlagBits() ^ minterm.removeFlagBits())
         // know the 1's in the xor will be lined up with the flag bits in self.value
         if(xor == 0) {return true}
-        return (xor & self.value) > 0
+        return xor == self.extractFlagBits()
     }
 
     func negate() -> BitField {

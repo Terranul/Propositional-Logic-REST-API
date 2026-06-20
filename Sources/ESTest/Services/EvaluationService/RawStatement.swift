@@ -10,7 +10,7 @@ class RawStatement: Statement {
     init(variable: Character, leadingOp: any LeadingOperator) {
         self.variable = variable
         self.leadingOp = leadingOp
-        self.outcomeMatch = BitFieldSequence(value: BitField(from: 1))
+        self.outcomeMatch = BitFieldSequence(value: BitField(from: 1073676287)) // 00111111111111101111111111111111
         self.outcomeMatch = self.leadingOp.getOutcome(self.outcomeMatch)
     }
 
@@ -38,7 +38,7 @@ class RawStatement: Statement {
         }
         let initialBitSequence: BitFieldSequence = BitFieldSequence(value: BitField(from: 1 << bitPosition))
         if (leadingOp is NotOperator) {
-            initialBitSequence.negate()
+            self.outcomeMatch = initialBitSequence.negate()
         }
         return initialBitSequence
     }

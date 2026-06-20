@@ -68,7 +68,7 @@ struct SimpTests {
     }
 
     @Test func testMatches() async throws {
-        let starBit = createBitField(value: "00000000000100000000000000001010")
+        let starBit = createBitField(value: "00000000000010000000000000001010")
          let t: BitField = BitField(from: [true, false, true, false])
          let s: BitField = BitField(from: [false, false, true, false])
          #expect(starBit.matches(with: s))
