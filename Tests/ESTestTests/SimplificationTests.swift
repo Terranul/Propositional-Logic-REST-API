@@ -137,5 +137,18 @@ struct SimpTests {
         input.move(from: 1, to: 3)
         #expect(input.getStatementBits() == "00000000000010000000000000001100")
     }
+
+    @Test func testNegateBitfield() async throws {
+        var subject: BitField = createBitField(value: "00111111111110001111111111111111")
+        let result: BitField = subject.negate()
+        #expect(result.getStatementBits() == "00111111111110000011111111111000")
+    }
+
+    @Test func testCountVariables() async throws {
+        var subject: BitField = createBitField(value: "00111111111110001111111111111111")
+        let result: Int = subject.countVariables()
+        #expect(result == 5)
+    }
+
 }
 

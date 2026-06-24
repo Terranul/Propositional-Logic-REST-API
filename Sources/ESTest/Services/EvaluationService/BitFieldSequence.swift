@@ -2,6 +2,9 @@ import OrderedCollections
 
 class BitFieldSequence  {
 
+    // number of flag bits reserved for other purposes. Currently 2 flag bits are reserved to represent overall false and true outcomes
+    static let RESERVED_BIT_COUNT: Int = 2
+
     // a bitfield has all flag bits being one, then you can say that the outcome will always be true.
     // we will then represent an always false bitfield with the same conditions as an always true bitfield but swapping
     // the last flag bit for a 0.
@@ -50,10 +53,44 @@ class BitFieldSequence  {
         }
     }
 
+    // 
+    func getStatement() -> LazyEvalComplexStatement {
+        
+    }
+
     func negate() -> BitFieldSequence{
-        return BitFieldSequence(sequence: Set(self.sequence.map { bitfield in
-            return bitfield.negate()
-        }))
+        // general negation rules:
+        // for each seperates statement, negate them, then intersect them
+        // for each contained statement,  break each individual bit selection
+        var intersectedSequence = Set<BitField>() 
+        for bitfield in self.sequence {
+            intersectedSequence = intersectedSequence.union(BitFieldSequence.intersectNegate(bitfield).sequence)
+        }
+        return BitFieldSequence.unionNegate(intersectedSequence)
+    }
+
+    // 1|1 -> 00
+    static func unionNegate(_ value: Set<BitField>) -> BitFieldSequence {
+        var newSequence = BitFieldSequence(value: value.first!)
+        for bitfield in value {
+            let tempSequence = BitFieldSequence(value: punchHole(bitfield.negate()))
+            newSequence = newSequence.intersect(with: tempSequence)
+        }
+        return newSequence
+    }
+
+    // 11 -> 0|0
+    static func intersectNegate(_ value: BitField) -> BitFieldSequence {
+        var newSequence: Set<BitField> = []
+        // thanks to the way we've formatted the algorithm, the variables will all be the first n bits (we don't need to search for them)
+        for i: Int in 0..<(value.countVariables() - BitFieldSequence.RESERVED_BIT_COUNT) {
+            let cur: Int32 = (value.value >> i) & 1
+            var newBitField: BitField = BitField(from: 1073676287)
+            cur == 0 ? newBitField.delete(position: i) : newBitField.append(position: i)
+            newBitField.deleteStar(position: i)
+            newSequence.insert(punchHole(newBitField.negate()))
+        }
+        return BitFieldSequence(sequence: newSequence)
     }
 
     static func getAlwaysFalseBitField() -> BitField {
@@ -72,6 +109,10 @@ class BitFieldSequence  {
             }
         }
         return false
+    }
+
+    func isSolved() -> Bool{
+        return self.sequence.count == 1 && self.sequence.first == BitFieldSequence.getAlwaysTrueBitField()
     }
 
     func copy() -> BitFieldSequence {
@@ -116,3 +157,8 @@ class BitFieldSequence  {
         })
     }
 }
+
+ // resintates the reserved bits by adding 2 leading 0's to the sequence
+    func punchHole(_ value: BitField) -> BitField {
+        return BitField(from: value.value & Int32(1073741823))
+    }

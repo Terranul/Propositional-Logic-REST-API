@@ -47,6 +47,9 @@ protocol Statement: AnyObject, Equatable {
     // to be christened as the new evaluate function in the future
     func evaluateOutcomeMatch(resolutionMap: [Character: Bool]) throws -> Bool
 
+    // returns true if the statement always evaluates to true
+    func isSolved() -> Bool
+
     // getters ________________________________________
 
     func getVariables() -> OrderedSet<Variable>

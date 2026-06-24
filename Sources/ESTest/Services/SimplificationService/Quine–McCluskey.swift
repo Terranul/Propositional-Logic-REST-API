@@ -42,6 +42,11 @@ struct BitField: Hashable {
         self.append(position: flagPosition)
     }
 
+    mutating func deleteStar(position: Int) {
+        let flagPosition = BitField.FLAG_BITS_BEGIN_INDEX + position
+        self.delete(position: flagPosition)
+    }
+
     // adds 0 at given position
     mutating func delete(position: Int) {
         self.value &= ~(1 << position)
@@ -81,11 +86,11 @@ struct BitField: Hashable {
     }
 
     func extractFlagBits() -> Int32 {
-        return self.value >> BitField.FLAG_BITS_BEGIN_INDEX
+        return Int32(bitPattern: UInt32(bitPattern: self.value) >> BitField.FLAG_BITS_BEGIN_INDEX)
     }
 
     func removeFlagBits() -> Int32 {
-        return Int32(UInt32(self.value) & UInt32(65535))
+        self.value & 65535
     }
 
     func doesContainFlagBit() -> Bool {
@@ -166,10 +171,30 @@ struct BitField: Hashable {
     func negate() -> BitField {
         // flipping the statement bits will negate
         // we must make sure not to flip the star and flag bits though
-        let flippedStatementBits: Int32 = ~self.removeFlagBits()
+        let flippedStatementBits: Int32 = ~self.removeFlagBits() & 65535
         // now we can make all the flag bits zero and then re-add them back
-        let newStatementBits = (~self.extractFlagBits() ^ flippedStatementBits) + self.extractFlagBits()
+        let newStatementBits = flippedStatementBits | self.extractFlagBits()
         return BitField(from: newStatementBits + (self.extractFlagBits() << BitField.FLAG_BITS_BEGIN_INDEX))
+        // let newStatementBits: Int32 = (~self.extractFlagBits() ^ flippedStatementBits) + self.extractFlagBits()
+        // return BitField(from: newStatementBits + (self.extractFlagBits() << BitField.FLAG_BITS_BEGIN_INDEX))
+    }
+
+    // returns the number of variables (the number of flag bits that are zero)
+    func countVariables() -> Int {
+        let flagBits = self.extractFlagBits()
+        var varCount = 0
+        for i: Int in 0..<16 {
+           let result = (flagBits >> i) & 1
+           if (result == 0) {
+            varCount += 1
+           }
+        }
+        return varCount
+    }
+
+    // each bitfield can be mapped to a single statement
+    func getStatement() -> any Statement {
+        
     }
 }
 

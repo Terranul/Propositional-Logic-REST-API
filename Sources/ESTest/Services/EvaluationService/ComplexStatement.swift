@@ -39,6 +39,31 @@ class ComplexStatement: Statement {
         self.outcomeMatch = createBitFieldSequence()
         // include the lop in the outcomeMatch
         self.outcomeMatch = self.leadingOp.getOutcome(self.outcomeMatch)
+        print(self.outcomeMatch.getDebugDescription() + "for statement:" + self.getStatement() + " with variable sequence: " + self.getVariables().description)
+    }
+
+    // used as an internal way to bypass the outcomeMatch initilization
+    internal init(lhs: any Statement, rhs: any Statement, op: any Operator, leadingOp: any LeadingOperator, outcomeMatch: BitFieldSequence) {
+        self.rhs = rhs
+        self.lhs = lhs
+        self.op = op
+        self.leadingOp = leadingOp
+        self.variables = rhs.getVariables().union(lhs.getVariables())
+        self.outcomeMatch = outcomeMatch
+    }
+
+    // used as an internal way to bypass the outcomeMatch initilization
+    internal init(components: [any Statement], op: any Operator, outcomeMatch: BitFieldSequence) {
+         self.lhs = components[0]
+        if (components.count == 2) {
+            self.rhs = components[1]
+        } else {
+            self.rhs = ComplexStatement.buildStatement(components: components, op: op, index: 1)
+        }
+        self.op = op
+        self.leadingOp = DefaultLeadingOperator()
+        self.variables = lhs.getVariables().intersection(rhs.getVariables())
+        self.outcomeMatch = outcomeMatch
     }
 
     // everything will have been init, so it is fine to use self properties here to construct the outcomeMatch
@@ -193,6 +218,10 @@ class ComplexStatement: Statement {
             // TODO: figure out what to do here
         }
     }
+
+    func isSolved() -> Bool {
+        return self.outcomeMatch.isSolved()
+    }   
 
      func isEqual(to statement: any Statement) -> Bool {
         return self.getStatement() == statement.getStatement()

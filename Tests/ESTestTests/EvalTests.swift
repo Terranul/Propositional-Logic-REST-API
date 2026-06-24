@@ -46,12 +46,12 @@ import OrderedCollections
 
 @Test func generalEvalTesting() async throws {
     let parser = StatementParser()
-    let value = "((a^b)v(a^c))"
+    let value = "((avc)=(b^a))"
     do {
         let base = try parser.parseStatement(value: value)
-        let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": false])
-         #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": false]))
+        let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": false])
          #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": false]))
+         #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": true]))
     } catch {
         #expect(Bool(false))
     }
@@ -126,4 +126,10 @@ struct BSTests {
    @Test func testCreateBitFieldSequence() async throws {
         
    }
+
+   @Test func testIntersectNegate() async throws {
+        let subject: BitField = createBitField(value: "00111111111110001111111111111111")
+        let result = BitFieldSequence.intersectNegate(subject)
+        #expect(result.getDebugDescription() == "00111111111111101111111111111110|00111111111111011111111111111101|00111111111110111111111111111011")
+   }    
 }

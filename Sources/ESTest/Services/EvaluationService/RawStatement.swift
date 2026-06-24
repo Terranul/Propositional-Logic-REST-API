@@ -18,6 +18,11 @@ class RawStatement: Statement {
         return outcomeMatch
     }
 
+    func isSolved() -> Bool {
+        // cannot really have a true result, the only possiblity is if lop is trueLeadingOperator
+        return self.leadingOp is TrueSlashOperator
+    }
+
     func evaluateOutcomeMatch(resolutionMap: [Character : Bool]) throws -> Bool {
         if let outcome = resolutionMap[self.variable] {
             return self.outcomeMatch.evaluate(outcome: [outcome])
