@@ -100,7 +100,11 @@ struct BitField: Hashable {
     func isFlagBit(index: Int) -> Bool {
         let flagBits: Int32 = self.extractFlagBits()
         return (flagBits >> index) & 1 == 1
-    }   
+    }  
+
+    func getBit(index: Int) -> Int32 {
+        return (self.value >> index) & 1
+    } 
 
     // debug
     func getStatementBits() -> String {
@@ -193,8 +197,22 @@ struct BitField: Hashable {
     }
 
     // each bitfield can be mapped to a single statement
-    func getStatement() -> any Statement {
-        
+    func getStatement(variableMap: [Variable]) throws -> any Statement{
+        let curVarCount = self.countVariables()
+        guard curVarCount == variableMap.count else {
+            throw EvalError.UndefinedVariable(variable: "/")
+        }
+        var intersectionSet: [RawStatement] = []
+        for i in 0..<curVarCount {
+            let curBit = self.getBit(index: i)
+            let targetVariable: Variable = variableMap[i]
+            if (curBit == 0) {
+                intersectionSet.append(RawStatement(variable: targetVariable, leadingOp: NotOperator()))
+            } else {
+                intersectionSet.append(RawStatement(variable: targetVariable, leadingOp: DefaultLeadingOperator()))
+            }
+        }
+        return LazyEvalComplexStatement(components: intersectionSet, op: AndOperator())
     }
 }
 

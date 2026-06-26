@@ -131,5 +131,20 @@ struct BSTests {
         let subject: BitField = createBitField(value: "00111111111110001111111111111111")
         let result = BitFieldSequence.intersectNegate(subject)
         #expect(result.getDebugDescription() == "00111111111111101111111111111110|00111111111111011111111111111101|00111111111110111111111111111011")
-   }    
+   }
+
+   @Test func testUnionNegate() async throws {
+        let subject1 =  createBitField(value: "00111111111111101111111111111110")
+        let subject2 = createBitField(value: "00111111111111011111111111111101")
+        let result = BitFieldSequence.unionNegate([subject1, subject2])
+        #expect(result.getDebugDescription() == "00111111111111001111111111111111")
+   }       
+
+   @Test func testNegate() async throws {
+        let subject1 = createBitField(value: "00111111111110101111111111111110")
+        let subject2 = createBitField(value: "00111111111111001111111111111100")
+        let sequence = BitFieldSequence(sequence: [subject1, subject2])
+        let result: BitFieldSequence = sequence.negate()
+        #expect(result.getDebugDescription() == "00111111111111001111111111111111")
+   } 
 }

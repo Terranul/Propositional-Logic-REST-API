@@ -54,24 +54,28 @@ class BitFieldSequence  {
     }
 
     // 
-    func getStatement() -> LazyEvalComplexStatement {
-        
-    }
+    // func getStatement() -> LazyEvalComplexStatement {
 
-    func negate() -> BitFieldSequence{
-        // general negation rules:
-        // for each seperates statement, negate them, then intersect them
-        // for each contained statement,  break each individual bit selection
-        var intersectedSequence = Set<BitField>() 
-        for bitfield in self.sequence {
-            intersectedSequence = intersectedSequence.union(BitFieldSequence.intersectNegate(bitfield).sequence)
+    // }
+
+
+    // wrong currently
+    func negate() -> BitFieldSequence {
+        var andSequence: [BitFieldSequence] = [] // meant to be a list of sequences to be intersected
+        for bitfield: BitField in self.sequence {
+            andSequence.append(BitFieldSequence.intersectNegate(bitfield))
         }
-        return BitFieldSequence.unionNegate(intersectedSequence)
+        var curResult = andSequence.first!
+        for value in andSequence {
+            curResult = curResult.intersect(with: value)
+        }
+        return curResult
     }
 
     // 1|1 -> 00
+    // not really used in our negation algo becuase it assumes that each bitfield in the sequence is fully reduced (represents a single variable only)
     static func unionNegate(_ value: Set<BitField>) -> BitFieldSequence {
-        var newSequence = BitFieldSequence(value: value.first!)
+        var newSequence = BitFieldSequence(value: punchHole(value.first!.negate()))
         for bitfield in value {
             let tempSequence = BitFieldSequence(value: punchHole(bitfield.negate()))
             newSequence = newSequence.intersect(with: tempSequence)
@@ -85,10 +89,12 @@ class BitFieldSequence  {
         // thanks to the way we've formatted the algorithm, the variables will all be the first n bits (we don't need to search for them)
         for i: Int in 0..<(value.countVariables() - BitFieldSequence.RESERVED_BIT_COUNT) {
             let cur: Int32 = (value.value >> i) & 1
-            var newBitField: BitField = BitField(from: 1073676287)
+            var newBitField: BitField = BitField(from: 1073741823)
             cur == 0 ? newBitField.delete(position: i) : newBitField.append(position: i)
             newBitField.deleteStar(position: i)
-            newSequence.insert(punchHole(newBitField.negate()))
+            let negatedBitField: BitField = punchHole(newBitField.negate())
+            // I'll come back to make this look better I think
+            newSequence.insert(negatedBitField)
         }
         return BitFieldSequence(sequence: newSequence)
     }
@@ -160,5 +166,8 @@ class BitFieldSequence  {
 
  // resintates the reserved bits by adding 2 leading 0's to the sequence
     func punchHole(_ value: BitField) -> BitField {
-        return BitField(from: value.value & Int32(1073741823))
+        var temp =  BitField(from: value.value & Int32(1073741823))
+        temp.append(position: BitField.FLAG_BITS_BEGIN_INDEX - 1) // some complication of the reserved bits that I forgot why it happens
+        temp.append(position: BitField.FLAG_BITS_BEGIN_INDEX - 2)
+        return temp
     }
