@@ -28,31 +28,31 @@ struct SimpTests {
     }
 
     @Test func testConvert() async throws {
-        let t: BitField = BitField(from: [true, false, true])
+        let t: BitField = BitField(from: [true, false, true], inOrder: true)
         #expect(t.getStatementBits() == "00000000000000000000000000000101")  
-        let b: BitField = BitField(from: [false, false, true])
+        let b: BitField = BitField(from: [false, false, true], inOrder: true)
         #expect(b.getStatementBits() == "00000000000000000000000000000001")   
-        let c: BitField = BitField(from: [true, false, false, true, true, false])
+        let c: BitField = BitField(from: [true, false, false, true, true, false], inOrder: true)
         #expect(c.getStatementBits() == "00000000000000000000000000100110")        
     }
 
     @Test func testPerformMerge() async throws {
-        let t: BitField = BitField(from: [true, false, true])
-        let s: BitField = BitField(from: [false, false, true])
+        let t: BitField = BitField(from: [true, false, true], inOrder: true)
+        let s: BitField = BitField(from: [false, false, true], inOrder: true)
         let result: BitField = t.perfromMerge(a: t, b: s, on: 2)
         #expect(result.getStatementBits() == "00000000000010000000000000000101")     
     }
 
     @Test func testMerge() async throws {
-        let t: BitField = BitField(from: [true, false, true, false])
-        let s: BitField = BitField(from: [false, false, true, false])
+        let t: BitField = BitField(from: [true, false, true, false], inOrder: true)
+        let s: BitField = BitField(from: [false, false, true, false], inOrder: true)
         do {
             let mergedT = try t.merge(b: s)
             #expect(mergedT.getStatementBits() == "00000000000010000000000000001010") 
         } catch {
             assertionFailure()
         }
-        let b: BitField = BitField(from: [false, false, false, false])
+        let b: BitField = BitField(from: [false, false, false, false], inOrder: true)
         do {
             let mergedB = try b.merge(b: t)
             assertionFailure()
@@ -69,8 +69,8 @@ struct SimpTests {
 
     @Test func testMatches() async throws {
         let starBit = createBitField(value: "00000000000010000000000000001010")
-         let t: BitField = BitField(from: [true, false, true, false])
-         let s: BitField = BitField(from: [false, false, true, false])
+         let t: BitField = BitField(from: [true, false, true, false], inOrder: true)
+         let s: BitField = BitField(from: [false, false, true, false], inOrder: true)
          #expect(starBit.matches(with: s))
          #expect(starBit.matches(with: t))
     }

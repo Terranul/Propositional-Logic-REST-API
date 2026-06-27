@@ -1,6 +1,7 @@
 import OrderedCollections
 
-class BitFieldSequence  {
+class BitFieldSequence: Equatable  {
+
 
     // number of flag bits reserved for other purposes. Currently 2 flag bits are reserved to represent overall false and true outcomes
     static let RESERVED_BIT_COUNT: Int = 2
@@ -24,11 +25,21 @@ class BitFieldSequence  {
         return self.sequence 
     }
 
+    static func == (lhs: BitFieldSequence, rhs: BitFieldSequence) -> Bool {
+        for value in lhs.sequence {
+            if (!(rhs.sequence.contains(value))) {
+                return false
+            }
+        }
+        return true
+    }
+
     func union(with value: BitFieldSequence) -> BitFieldSequence {
         return BitFieldSequence(sequence: self.sequence.union(value.getSequence()))
     }
 
     func intersect(with value: BitFieldSequence) -> BitFieldSequence {
+        guard value != self else {return value}
         // like factoring out terms (a + b)(c + d) = ac + ad + bc + bd
         var newSequence = Set<BitField>()
         for curValue in self.sequence {
@@ -87,7 +98,8 @@ class BitFieldSequence  {
     static func intersectNegate(_ value: BitField) -> BitFieldSequence {
         var newSequence: Set<BitField> = []
         // thanks to the way we've formatted the algorithm, the variables will all be the first n bits (we don't need to search for them)
-        for i: Int in 0..<(value.countVariables() - BitFieldSequence.RESERVED_BIT_COUNT) {
+        for i in value.getVariableIndices() {
+            guard (i + BitFieldSequence.RESERVED_BIT_COUNT) < BitField.FLAG_BITS_BEGIN_INDEX else {continue}
             let cur: Int32 = (value.value >> i) & 1
             var newBitField: BitField = BitField(from: 1073741823)
             cur == 0 ? newBitField.delete(position: i) : newBitField.append(position: i)
@@ -108,7 +120,7 @@ class BitFieldSequence  {
     }
 
     func evaluate(outcome: [Bool]) -> Bool {
-        let bitFieldOutcome: BitField = BitField(from: outcome)
+        let bitFieldOutcome: BitField = BitField(from: outcome, inOrder: false)
         for value in sequence {
             if (BitFieldSequence.convertToEvalConditions(value).matches(with: bitFieldOutcome)) {
                 return true
@@ -144,6 +156,7 @@ class BitFieldSequence  {
             let newStatementBits: Int32 = valueA.removeFlagBits() & ~zeroesB
             // deal with the flag  bits now
             let newFlagBits: Int32 = valueB.extractFlagBits() & valueA.extractFlagBits()
+            print("merged \(valueA.getStatementBits()) and \(valueB.getStatementBits()) to get the result \(BitField(statementBits: newStatementBits, flagBits: newFlagBits).getStatementBits())")
             return BitField(statementBits: newStatementBits, flagBits: newFlagBits)
         }
         return BitFieldSequence.getAlwaysFalseBitField()

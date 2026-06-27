@@ -46,12 +46,12 @@ import OrderedCollections
 
 @Test func generalEvalTesting() async throws {
     let parser = StatementParser()
-    let value = "((avc)=(b^a))"
+    let value = "((avc)^~(b^a))"
     do {
         let base = try parser.parseStatement(value: value)
         let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": false])
-         #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": false]))
-         #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": true]))
+         #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": false, "b": false, "c": true]))
+         #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": true]))
     } catch {
         #expect(Bool(false))
     }
@@ -71,9 +71,9 @@ struct BSTests {
 
 
     @Test func testUnion() async throws {
-        let a = BitField(from: [true, false, true])
-        let b = BitField(from: [true, false, false])
-        let c = BitField(from: [true, true, false])
+        let a = BitField(from: [true, false, true], inOrder: true)
+        let b = BitField(from: [true, false, false], inOrder: true)
+        let c = BitField(from: [true, true, false], inOrder: true)
         let sequence = BitFieldSequence(value: a)
         let abUnion = sequence.union(with: BitFieldSequence(value: b))
         #expect(abUnion.getDebugDescription() == "00000000000000000000000000000101|00000000000000000000000000000100")
@@ -98,8 +98,8 @@ struct BSTests {
     }
 
    @Test func testIntersect() async throws {
-        let a = BitField(from: [true, false, true])
-        let b = BitField(from: [true, false, false])
+        let a = BitField(from: [true, false, true], inOrder: true)
+        let b = BitField(from: [true, false, false], inOrder: true)
         let c = createBitField(value: "00000000000000110000000000000111") // 1**
         let sequence = BitFieldSequence(value: a)
         let abUnion = sequence.union(with: BitFieldSequence(value: b))
@@ -128,9 +128,12 @@ struct BSTests {
    }
 
    @Test func testIntersectNegate() async throws {
-        let subject: BitField = createBitField(value: "00111111111110001111111111111111")
-        let result = BitFieldSequence.intersectNegate(subject)
+        var subject: BitField = createBitField(value: "00111111111110001111111111111111")
+        var result = BitFieldSequence.intersectNegate(subject)
         #expect(result.getDebugDescription() == "00111111111111101111111111111110|00111111111111011111111111111101|00111111111110111111111111111011")
+        subject = createBitField(value: "00111111111110101111111111111110")
+        result = BitFieldSequence.intersectNegate(subject)
+        #expect(result.getDebugDescription() == "00111111111111001111111111111111")
    }
 
    @Test func testUnionNegate() async throws {

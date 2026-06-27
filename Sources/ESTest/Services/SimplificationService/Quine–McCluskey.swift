@@ -6,7 +6,8 @@ enum SimpErrors: Error {
 
 struct BitField: Hashable {
 
-    static let FLAG_BITS_BEGIN_INDEX: Int = 16
+    static let FLAG_BITS_BEGIN_INDEX: Int = BitField.BIT_COUNT/2
+    static let BIT_COUNT: Int = 32
 
     /*
         Represents the T/F sequence of a given inputs to a statements
@@ -17,9 +18,9 @@ struct BitField: Hashable {
 
     var value: Int32
 
-    public init(from value: [Bool]) {
+    public init(from value: [Bool], inOrder: Bool) {
         self.value = 0
-        self.value = self.convert(from: value)
+        self.value = self.convert(from: value, inOrder: inOrder)
     }
 
     public init(from value: Int32) {
@@ -120,15 +121,15 @@ struct BitField: Hashable {
         return stringStatements
     }
 
-    // converts sequence of bool to their binary representation: TFTF -> 1010
-    private func convert(from value: [Bool]) -> Int32 {
+    // inOrder is true:  [true, false, true, false]-> 1010
+    // inOrder is false: [true, false, true, false] -> 0101
+    private func convert(from value: [Bool], inOrder: Bool) -> Int32 {
         var target: Int32 = 0
         for i in 0..<value.count {
-            if(value[i]) {
-                let key: Int = value.count - i - 1
-                target += 1 << key
-            }
-        }
+            guard value[i] else { continue }
+            let bit = inOrder ? value.count - i - 1 : i
+            target |= 1 << bit
+        }               
         return target
     }
 
@@ -196,6 +197,16 @@ struct BitField: Hashable {
         return varCount
     }
 
+    func getVariableIndices() -> Set<Int> {
+        var indices: Set<Int> = []
+        for i in 0..<16 {
+            if(!self.isFlagBit(index: i)) {
+                indices.insert(i)
+            }
+        }
+        return indices
+    }
+
     // each bitfield can be mapped to a single statement
     func getStatement(variableMap: [Variable]) throws -> any Statement{
         let curVarCount = self.countVariables()
@@ -236,7 +247,7 @@ func getEssentialImplicants(value: any Statement) throws -> ([Character], Set<Bi
 func getRawBitfields(_ outcomes: [[Bool]]) -> Set<BitField> {
     return Set<BitField>(
         outcomes.map() { outcome in
-            return BitField.init(from: outcome)
+            return BitField.init(from: outcome, inOrder: true)
         })
 }
 

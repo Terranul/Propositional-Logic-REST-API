@@ -35,6 +35,7 @@ class ComplexStatement: Statement {
         self.op = op
         self.leadingOp = leadingOp
         self.variables = rhs.getVariables().union(lhs.getVariables())
+        print("statement variable list: " + self.variables.description)
         self.outcomeMatch = BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
         self.outcomeMatch = createBitFieldSequence()
         // include the lop in the outcomeMatch
@@ -87,6 +88,7 @@ class ComplexStatement: Statement {
         let rhsOutcome: BitFieldSequence = rhs.getBitFieldSequence().copy()
         let rhsVariables: OrderedSet<Variable> = rhs.getVariables()
         let masterSequence: OrderedSet<Variable> = rhsVariables.union(lhsVariables)
+        print("arrange variables sequence: " + masterSequence.description)
         // we'll do the study BitField first, and then ourselves after
         rhsOutcome.map() { bitfield in
             return ComplexStatement.rearrangeStudyBitField(
