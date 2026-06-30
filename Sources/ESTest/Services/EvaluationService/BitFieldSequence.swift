@@ -97,8 +97,10 @@ class BitFieldSequence: Equatable  {
     // 11 -> 0|0
     static func intersectNegate(_ value: BitField) -> BitFieldSequence {
         var newSequence: Set<BitField> = []
+        let variableIndices = value.getVariableIndices()
+        guard variableIndices.count > 2 else {return BitFieldSequence.negateStaticBitField(value)}
         // thanks to the way we've formatted the algorithm, the variables will all be the first n bits (we don't need to search for them)
-        for i in value.getVariableIndices() {
+        for i in variableIndices {
             guard (i + BitFieldSequence.RESERVED_BIT_COUNT) < BitField.FLAG_BITS_BEGIN_INDEX else {continue}
             let cur: Int32 = (value.value >> i) & 1
             var newBitField: BitField = BitField(from: 1073741823)
@@ -109,6 +111,21 @@ class BitFieldSequence: Equatable  {
             newSequence.insert(negatedBitField)
         }
         return BitFieldSequence(sequence: newSequence)
+    }
+
+    // negates the always true and false bitfields distinctly as they do not conform the the normal stucture
+    // assumes the value input is static
+    static func negateStaticBitField(_ value: BitField) -> BitFieldSequence {
+        if (value.getBit(index: BitField.BIT_COUNT - 2) == 0) {
+            // identified as always false bitfield
+            return BitFieldSequence(value: BitFieldSequence.getAlwaysTrueBitField())
+        } else {
+            return BitFieldSequence(value: BitFieldSequence.getAlwaysFalseBitField())
+        }
+    }
+
+    static func isStaticBitField(_ value: BitField) -> Bool {
+        return value.countVariables() <= 2
     }
 
     static func getAlwaysFalseBitField() -> BitField {
@@ -122,6 +139,10 @@ class BitFieldSequence: Equatable  {
     func evaluate(outcome: [Bool]) -> Bool {
         let bitFieldOutcome: BitField = BitField(from: outcome, inOrder: false)
         for value in sequence {
+            if (BitFieldSequence.isStaticBitField(value) && self.sequence.count > 1) {
+                // we can skip this case
+                continue
+            }
             if (BitFieldSequence.convertToEvalConditions(value).matches(with: bitFieldOutcome)) {
                 return true
             }
@@ -159,6 +180,7 @@ class BitFieldSequence: Equatable  {
             print("merged \(valueA.getStatementBits()) and \(valueB.getStatementBits()) to get the result \(BitField(statementBits: newStatementBits, flagBits: newFlagBits).getStatementBits())")
             return BitField(statementBits: newStatementBits, flagBits: newFlagBits)
         }
+                    print("merged \(valueA.getStatementBits()) and \(valueB.getStatementBits()) to get the result of always false bitfield")
         return BitFieldSequence.getAlwaysFalseBitField()
     }
 

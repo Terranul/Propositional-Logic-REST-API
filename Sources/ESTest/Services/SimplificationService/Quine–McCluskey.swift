@@ -170,7 +170,7 @@ struct BitField: Hashable {
         let xor: Int32 = (self.removeFlagBits() ^ minterm.removeFlagBits())
         // know the 1's in the xor will be lined up with the flag bits in self.value
         if(xor == 0) {return true}
-        return xor == self.extractFlagBits()
+        return (xor & self.extractFlagBits()) == xor
     }
 
     func negate() -> BitField {

@@ -89,7 +89,6 @@ class ComplexStatement: Statement {
         let rhsVariables: OrderedSet<Variable> = rhs.getVariables()
         let masterSequence: OrderedSet<Variable> = rhsVariables.union(lhsVariables)
         print("arrange variables sequence: " + masterSequence.description)
-        // we'll do the study BitField first, and then ourselves after
         rhsOutcome.map() { bitfield in
             return ComplexStatement.rearrangeStudyBitField(
                 bitfield: bitfield, studyVariables: rhsVariables, masterSequence: masterSequence)
@@ -106,7 +105,8 @@ class ComplexStatement: Statement {
         masterSequence: OrderedSet<Variable>
     ) -> BitField {
         var newBitField: BitField = BitField(from: bitfield.value)
-        for i in 0..<studyVariables.count {
+        // either you stay in the position or you move leftwards, so we reverse to avoid conflicts
+        for i in (0..<studyVariables.count).reversed() {
             let targetVariable: Variable = studyVariables[i]
             let newPosition = masterSequence.firstIndex(of: targetVariable)!
             newBitField.move(from: i, to: newPosition)

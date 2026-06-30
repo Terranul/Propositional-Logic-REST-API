@@ -46,11 +46,14 @@ import OrderedCollections
 
 @Test func generalEvalTesting() async throws {
     let parser = StatementParser()
-    let value = "((avc)^~(b^a))"
+    let value = "(~(bva)=c)"
     do {
         let base = try parser.parseStatement(value: value)
-        let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": false])
-         #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": false, "b": false, "c": true]))
+        // let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true])
+        //  #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false]))
+        //  #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true]))
+        let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": true])
+         #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": false]))
          #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": true]))
     } catch {
         #expect(Bool(false))
@@ -105,6 +108,13 @@ struct BSTests {
         let abUnion = sequence.union(with: BitFieldSequence(value: b))
         let abUnionIntersectC = abUnion.intersect(with: BitFieldSequence(value: c))
         #expect(abUnionIntersectC.getDebugDescription() == "00000000000000000000000000000101|00000000000000000000000000000100")
+        let test1 = createBitField(value: "00111111111111011111111111111111")
+        let test2 = createBitField(value: "00111111111110111111111111111011")
+        let seq2 = BitFieldSequence(sequence: [test1, test2])
+        let test3 = createBitField(value: "00111111111111101111111111111111")
+        let test4 = createBitField(value: "00111111111110111111111111111011")
+        let seq3 = BitFieldSequence(sequence: [test3, test4])
+        let result = seq2.intersect(with: seq3)
    }
 
    @Test func testArrangeVariables() async throws {
