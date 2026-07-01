@@ -46,7 +46,7 @@ import OrderedCollections
 
 @Test func generalEvalTesting() async throws {
     let parser = StatementParser()
-    let value = "(~(bva)=c)"
+    let value = "~-(~(bva)=(c^a))"
     do {
         let base = try parser.parseStatement(value: value)
         // let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true])
@@ -54,7 +54,7 @@ import OrderedCollections
         //  #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true]))
         let outcome = try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": true])
          #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": false, "c": false]))
-         #expect(try !base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": true]))
+         #expect(try base.evaluateOutcomeMatch(resolutionMap: ["a": true, "b": true, "c": true]))
     } catch {
         #expect(Bool(false))
     }

@@ -1,5 +1,7 @@
 // application of Quine–McCluskey algorithm for simplifcation of prop logic statements
 
+import OrderedCollections
+
 enum SimpErrors: Error {
     case InvalidBitMerge
 }
@@ -208,7 +210,7 @@ struct BitField: Hashable {
     }
 
     // each bitfield can be mapped to a single statement
-    func getStatement(variableMap: [Variable]) throws -> any Statement{
+    func getStatement(variableMap: OrderedSet<Variable>) throws -> any Statement{
         let curVarCount = self.countVariables()
         guard curVarCount == variableMap.count else {
             throw EvalError.UndefinedVariable(variable: "/")

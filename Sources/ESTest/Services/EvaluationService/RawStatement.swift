@@ -67,6 +67,8 @@ class RawStatement: Statement {
 
     func negate() {
         leadingOp = leadingOp.negate()
+        self.outcomeMatch = self.outcomeMatch.negate()
+        print("result of raw statement negation:" + self.outcomeMatch.getDebugDescription())
     }
 
     func evaluate(resolutionMap: [Character: Bool]) throws -> Bool {

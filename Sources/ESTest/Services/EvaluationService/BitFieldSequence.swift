@@ -64,10 +64,14 @@ class BitFieldSequence: Equatable  {
         }
     }
 
-    // 
-    // func getStatement() -> LazyEvalComplexStatement {
-
-    // }
+    
+    func getStatement(variableMap: OrderedSet<Variable>) throws -> LazyEvalComplexStatement {
+        var orComponents: [any Statement] = []
+        for value in self.sequence {
+            orComponents.append(try value.getStatement(variableMap: variableMap))
+        }
+        return LazyEvalComplexStatement(components: orComponents, op: OrOperator())
+    }
 
 
     // wrong currently

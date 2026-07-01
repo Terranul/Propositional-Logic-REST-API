@@ -69,7 +69,6 @@ class ComplexStatement: Statement {
 
     // everything will have been init, so it is fine to use self properties here to construct the outcomeMatch
     public func createBitFieldSequence() -> BitFieldSequence {
-        print("hit create sequence")
         // add space akin to the number of distinct variables in rhs
         let (lhsOutcome, rhsOutcome) = ComplexStatement.arrangeVariables(lhs: self.lhs, rhs: self.rhs)
         if (self.op is OrOperator) {
@@ -88,15 +87,18 @@ class ComplexStatement: Statement {
         let rhsOutcome: BitFieldSequence = rhs.getBitFieldSequence().copy()
         let rhsVariables: OrderedSet<Variable> = rhs.getVariables()
         let masterSequence: OrderedSet<Variable> = rhsVariables.union(lhsVariables)
-        print("arrange variables sequence: " + masterSequence.description)
+        print("pre lhs mapping:" + lhsOutcome.getDebugDescription())
+        print("pre rhs mapping:" + rhsOutcome.getDebugDescription())
         rhsOutcome.map() { bitfield in
             return ComplexStatement.rearrangeStudyBitField(
                 bitfield: bitfield, studyVariables: rhsVariables, masterSequence: masterSequence)
         }
+        print("rhs mapping:" + rhsOutcome.getDebugDescription())
         lhsOutcome.map({ bitfield in
             return ComplexStatement.rearrangeStudyBitField(
                 bitfield: bitfield, studyVariables: lhsVariables, masterSequence: masterSequence)
         })
+        print("lhs mapping:" + lhsOutcome.getDebugDescription())
         return (lhsOutcome, rhsOutcome)
     }
 
@@ -169,6 +171,16 @@ class ComplexStatement: Statement {
         return self
     }
 
+    // to be the sole implementation of cnf in complex statement when we clean up later
+    func toUpdatedCNF() -> LazyEvalComplexStatement {
+        do {
+            return try self.outcomeMatch.getStatement(variableMap: self.variables)
+        } catch {
+            // should never happen so we'll kill the program if it does
+            fatalError("outcome match is not synced with statement")
+        }
+    }
+
     func copy() -> any Statement {
         let lhsCpy: any Statement = lhs.copy()
         let rhsCpy: any Statement = rhs.copy()
@@ -203,8 +215,10 @@ class ComplexStatement: Statement {
     }
 
     func negate() {
+        print("\(self.getStatement()) is going to be negated; starting at: \(self.outcomeMatch.getDebugDescription())")
         self.leadingOp = leadingOp.negate()
         self.outcomeMatch = outcomeMatch.negate()
+        print("result:" + self.outcomeMatch.getDebugDescription())
     }
 
     func setLop(lop: any LeadingOperator) {
