@@ -1,7 +1,7 @@
 enum EvalError: Error {
     case InvalidOperator(operator: Character)
     case UndefinedVariable(variable: Character)
-    case MalformedStatement
+    case MalformedStatement(message: String)
     case InternalParsingError
 
     var description: String {
@@ -13,7 +13,7 @@ enum EvalError: Error {
             case .UndefinedVariable(let variable):
                 return "Variable \(variable) has not been mapped to a specific truth value"
             case .InternalParsingError:
-                return "Internal parsing issue. Please try again or contact the team"
+                return "Internal parsing issue."
         }
     }
 }

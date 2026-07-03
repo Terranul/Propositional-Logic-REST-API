@@ -6,15 +6,18 @@ fileprivate class DummyStatement {
     var variable: Variable?
     var op: (any Operator)?
     var lop: [any LeadingOperator]
+    var isPremature: Bool
 
     // init for raw statement
     init(variable: Variable, lop: any LeadingOperator) {
         self.variable = variable
         self.lop = [lop]
+        self.isPremature = false
     }
 
-    init() {
+    init(isPremature: Bool) {
         self.lop = []
+        self.isPremature = isPremature
     }
 
     func create() -> any Statement {
@@ -35,15 +38,17 @@ fileprivate class DummyStatement {
         return lhs != nil && rhs != nil
     }
 
-    func isPremature() -> Bool {
-        return lop.count != 0
-    }
-
-    func fill(with value: any Statement) {
-        if (lhs != nil) {
+    func fill(with value: any Statement) throws{
+        if (lhs == nil) {
             lhs = value
-        } else {
+        } else if (rhs == nil) {
             rhs = value
+        } else {
+            // we have > 2 variables between two paren blocks ex: (aa^zb)
+            // realistically, this class should be more seperated from the parser -> job for later
+            throw EvalError.MalformedStatement(
+                message: "More than two variables are present in this statement block: \(lhs!.getStatement() + op!.getStringRepresentation())"
+            )
         }
     }   
 }
@@ -76,16 +81,18 @@ func linearParse(input: String) throws -> any Statement {
     for character in input {
         if (character == "(") {
             if (stack.peek() != nil) {
-                if (!stack.peek()!.isPremature()) {
-                    stack.push(DummyStatement())
+                if (!stack.peek()!.isPremature) {
+                    stack.push(DummyStatement(isPremature: false))
+                } else {
+                    stack.peek()!.isPremature = false
                 }
             } else {
-                stack.push(DummyStatement())
+                stack.push(DummyStatement(isPremature: false))
             }
         } else if (character == ")") {
             if let newStatement = stack.pop()?.create() {
                 if let fillStatement = stack.peek() {
-                    fillStatement.fill(with: newStatement)
+                    try fillStatement.fill(with: newStatement)
                 } else {
                     return newStatement
                 }
@@ -98,24 +105,24 @@ func linearParse(input: String) throws -> any Statement {
             }
         } else if (operatorParser.isLeadingOperator(value: character)) {
             // prematurely throw onto the stack
-            if (stack.peek() != nil && stack.peek()!.isPremature()) {
+            if (stack.peek() != nil && stack.peek()!.isPremature) {
                 // case where we have chained lops
                 stack.peek()!.lop.append(operatorParser.getLeadingOperator(value: character))
             } else {
-                let newStatement = DummyStatement()
+                let newStatement = DummyStatement(isPremature: true)
                 newStatement.lop = [operatorParser.getLeadingOperator(value: character)]
                 stack.push(newStatement)
             }
         } else {
             // variable
             var newRaw: RawStatement? = nil
-            if (stack.peek() != nil && stack.peek()!.isPremature()) {
+            if (stack.peek() != nil && stack.peek()!.isPremature) {
                 newRaw = stack.pop()!.createRaw(variable: character)
             } else {
                 newRaw = RawStatement(variable: character, leadingOp: DefaultLeadingOperator())
             }
             if let curStatement = stack.peek() {
-                curStatement.fill(with: newRaw!)
+                try curStatement.fill(with: newRaw!)
             } else {
                 return newRaw!
             }

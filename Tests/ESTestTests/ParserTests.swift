@@ -69,4 +69,42 @@ let a = 9
     }
 }
 
+@Suite("linear parsing tests")
+struct LinearParseTests {
+    @Test func testParseCorrectSyntax() async throws {
+        do {
+            var stat = try linearParse(input: "(a^b)")
+            #expect(stat.getStatement() == "(a ^ b)")
+            stat = try linearParse(input: "((a^b)v(d^c))")
+            #expect(stat.getStatement() == "((a ^ b) v (d ^ c))")
+            stat = try linearParse(input: "~a")
+            #expect(stat.getStatement() == "~a")
+            stat = try linearParse(input: "(~avb)")
+            #expect(stat.getStatement() == "(~a v b)")
+            stat = try linearParse(input: "~(~avb)")
+            #expect(stat.getStatement() == "~(~a v b)")
+            stat = try linearParse(input: "~-+(~avb)")
+            #expect(stat.getStatement() == "~-+(~a v b)")
+            stat = try linearParse(input: "(av(c^d))")
+            #expect(stat.getStatement() == "(a v (c ^ d))")
+            stat = try linearParse(input: "((av(c^d))^z)")
+            #expect(stat.getStatement() == "((a v (c ^ d)) ^ z)")
+            stat = try linearParse(input: "((av(c|d))=z)")
+            #expect(stat.getStatement() == "((a v (c | d)) = z)")
+        } catch {
+            #expect(Bool(false))
+        }
+    }
+
+    @Test func testParseIncorrectSyntax() async throws {
+        do {
+            var stat = try linearParse(input: "(aa^b)")
+
+            #expect(stat.getStatement() == "(a ^ a)")
+        } catch {
+
+        }
+    }
+}
+
 
