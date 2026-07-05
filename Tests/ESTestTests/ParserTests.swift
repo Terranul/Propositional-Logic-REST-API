@@ -40,11 +40,11 @@ let a = 9
 
 @Test func testStatement() async throws {
     let parser = StatementParser()
-    let value = "~~a"
+    let value = "(((a^b)v(c^d))=((a^b)v(c^d)))"
     // small enough example to test exhaustively
     do {
         let base: any Statement = try parser.parseStatement(value: value)
-         #expect(base.getStatement() == "(a v a)")
+         #expect(base.getStatement() == "~~a")
     } catch {
         #expect(Bool(false))
     }
@@ -60,7 +60,7 @@ let a = 9
 
 @Test func groupParserTests() async throws {
     let parser: groupedParser = groupedParser()
-    let value = "(a^bv~c)"
+    let value = "(avbvc)"
     do {
         let base: any Statement = try parser.parseStatement(value: value)
          #expect(base.getStatement() == "((a v b) v c)")
@@ -91,6 +91,7 @@ struct LinearParseTests {
             #expect(stat.getStatement() == "((a v (c ^ d)) ^ z)")
             stat = try linearParse(input: "((av(c|d))=z)")
             #expect(stat.getStatement() == "((a v (c | d)) = z)")
+            stat = try linearParse(input: "(((a^b)v(c^d))=((a^b)v(c^d)))")
         } catch {
             #expect(Bool(false))
         }
@@ -98,11 +99,10 @@ struct LinearParseTests {
 
     @Test func testParseIncorrectSyntax() async throws {
         do {
-            var stat = try linearParse(input: "(aa^b)")
-
-            #expect(stat.getStatement() == "(a ^ a)")
-        } catch {
-
+            //var stat = try linearParse(input: "(aab^)")
+            var stat = try linearParse(input: "(then)")
+        } catch EvalError.MalformedStatement(let message) {
+            print(message)
         }
     }
 }

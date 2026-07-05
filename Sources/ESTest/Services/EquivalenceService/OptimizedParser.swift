@@ -61,7 +61,7 @@ func validateStatement(for statement: String) -> [any Error] {
     }
     if (tracker.op != tracker.variable - 1) {
         print("adding  malformed from tracker - 1 rule")
-        issues.append(EvalError.MalformedStatement)
+        issues.append(EvalError.MalformedStatement(message: "An operator does not correspond to exactly two sub-expressions"))
     }
     if (tracker.Lbind != tracker.Rbind) {
         print("adding  unbalanced parens")
@@ -69,7 +69,7 @@ func validateStatement(for statement: String) -> [any Error] {
     }
     if (tracker.op != 0 && tracker.variable > tracker.Lbind + tracker.Rbind) {
         print("adding  malformed from tracker variable AND BINSINF RULE")
-        issues.append(EvalError.MalformedStatement)
+        issues.append(EvalError.MalformedStatement(message: "Invalid parenthesis organization"))
     }
     return issues
 }

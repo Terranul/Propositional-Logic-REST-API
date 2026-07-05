@@ -20,12 +20,18 @@ fileprivate class DummyStatement {
         self.isPremature = isPremature
     }
 
-    func create() -> any Statement {
-        let resolvedLop: any LeadingOperator = lop.count == 0 ? DefaultLeadingOperator() : ComplexLeadingOperator(guts: lop)
-        if (rhs == nil && variable != nil) {
-            // we'll classify this as a raw statement
-            return RawStatement(variable: variable!, leadingOp: resolvedLop)
+    func create() throws -> any Statement {
+        if (lhs == nil || rhs == nil) {
+            throw EvalError.MalformedStatement(message: 
+                "Each parenthesis block should contain two sub-expressions."
+            )
         }
+        if (op == nil) {
+            throw EvalError.MalformedStatement(message: 
+                "Each parenthesis block should contain an operator."
+            )
+        }
+        let resolvedLop: any LeadingOperator = lop.count == 0 ? DefaultLeadingOperator() : ComplexLeadingOperator(guts: lop)
         return LazyEvalComplexStatement(lhs: lhs!, rhs: rhs!, op: op!, leadingOp: resolvedLop)
     }
 
@@ -35,7 +41,35 @@ fileprivate class DummyStatement {
     }
 
     func isComplete() -> Bool {
-        return lhs != nil && rhs != nil
+        return lhs != nil && rhs != nil && op != nil
+    }
+
+    func fillOperator(with value: any Operator) throws {
+        if (lhs == nil && rhs == nil) {
+            throw EvalError.MalformedStatement(message: 
+                "Operator cannot precede both expressions it operates on."
+            )
+        } else if (lhs != nil && rhs != nil) {
+            throw EvalError.MalformedStatement(message: 
+                "Operator cannot proceed both expressions it operates on."
+            )
+        } else if (op != nil) {
+            throw EvalError.MalformedStatement(message: 
+                "Chaining or including multiple operators within the same statement is invalid."
+            )
+        } else {
+            op = value
+        }
+    }
+
+    func fillLop(with value: any LeadingOperator) throws {
+        if (lhs != nil && rhs != nil || lhs != nil) {
+            throw EvalError.MalformedStatement(message: 
+                "Leading Operators must be placed prior to the statement definition to express which expression it operates on."
+            )
+        } else {
+            lop.append(value)
+        }
     }
 
     func fill(with value: any Statement) throws{
@@ -47,7 +81,7 @@ fileprivate class DummyStatement {
             // we have > 2 variables between two paren blocks ex: (aa^zb)
             // realistically, this class should be more seperated from the parser -> job for later
             throw EvalError.MalformedStatement(
-                message: "More than two variables are present in this statement block: \(lhs!.getStatement() + op!.getStringRepresentation())"
+                message: "More than two expressions are present in this statement block containing expressions: \(lhs!.getStatement()), \(rhs!.getStatement()), \(value.getStatement())"
             )
         }
     }   
@@ -90,7 +124,7 @@ func linearParse(input: String) throws -> any Statement {
                 stack.push(DummyStatement(isPremature: false))
             }
         } else if (character == ")") {
-            if let newStatement = stack.pop()?.create() {
+            if let newStatement = try stack.pop()?.create() {
                 if let fillStatement = stack.peek() {
                     try fillStatement.fill(with: newStatement)
                 } else {
@@ -99,18 +133,24 @@ func linearParse(input: String) throws -> any Statement {
             }
         } else if (operatorParser.isOperator(value: character)) {
             if let curStatement = stack.peek() {
-                curStatement.op = try operatorParser.getOperator(value: character)
+                try curStatement.fillOperator(with: operatorParser.getOperator(value: character))
             } else {
-                // throw error
+                throw EvalError.MalformedStatement(
+                    message: "Operator: \(try operatorParser.getOperator(value: character).getStringRepresentation()) was placed outside of the statement boundaries"
+                )
             }
         } else if (operatorParser.isLeadingOperator(value: character)) {
             // prematurely throw onto the stack
             if (stack.peek() != nil && stack.peek()!.isPremature) {
                 // case where we have chained lops
-                stack.peek()!.lop.append(operatorParser.getLeadingOperator(value: character))
+                try stack.peek()!.fillLop(with: operatorParser.getLeadingOperator(value: character))
+            } else if (stack.peek() != nil && stack.peek()!.isComplete()) {
+                throw EvalError.MalformedStatement(message: 
+                    "Leading Operators must be placed prior to the statement definition to define which expression it operates on."
+                )
             } else {
                 let newStatement = DummyStatement(isPremature: true)
-                newStatement.lop = [operatorParser.getLeadingOperator(value: character)]
+                try newStatement.fillLop(with: operatorParser.getLeadingOperator(value: character))
                 stack.push(newStatement)
             }
         } else {
@@ -128,6 +168,5 @@ func linearParse(input: String) throws -> any Statement {
             }
         }
     }
-    // should never hit this point
-    throw EvalError.InternalParsingError
+    throw EvalError.MalformedStatement(message: "Parens may be unbalanced, please review the input")
 }

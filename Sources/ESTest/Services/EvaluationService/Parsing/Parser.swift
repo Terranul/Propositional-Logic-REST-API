@@ -31,7 +31,7 @@ extension Parser {
     // assumes balanced paren checks already have occurred
     func parseStatement(value: String) throws -> any Statement {
         guard value != "" else {
-            throw EvalError.MalformedStatement
+            throw EvalError.MalformedStatement(message: "")
         }
         let leadingOperator: any LeadingOperator = getLeadingOperator(value: value)
         let rmValue: String = removeLeadingOperator(value: value, lop: leadingOperator)

@@ -160,4 +160,15 @@ struct BSTests {
         let result: BitFieldSequence = sequence.negate()
         #expect(result.getDebugDescription() == "00111111111111001111111111111111")
    } 
+
+   @Test func testGetStatement() async throws {
+        
+   }
+}
+
+@Suite("conversion testing")
+struct ConversionTests {
+    @Test func testName() async throws {
+    
+    }
 }
